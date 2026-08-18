@@ -1,0 +1,1756 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>헬스로그 · 데일리 체크인</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --lavender:#E9E1FF; --lavender-deep:#8C7AE6;
+    --mint:#D8F6EC; --mint-deep:#4FBF9F;
+    --sky:#DDEEFF; --sky-deep:#5B9BD5;
+    --pink:#FFE3EE; --pink-deep:#FF7FA6;
+    --ink:#4A4458; --ink-soft:#8A83A0;
+    --radius:22px; --shadow:0 6px 20px rgba(140,122,230,0.12);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-width:0;
+    background:linear-gradient(180deg,#FBF9FF 0%, #F5F1FF 100%);
+    font-family:'Pretendard',sans-serif; color:var(--ink);
+    -webkit-font-smoothing:antialiased; padding-bottom:40px;
+  }
+  header{padding:24px 20px 4px; text-align:center;}
+  header h1{font-family:'Gowun Dodum',sans-serif; font-size:22px; margin:0 0 4px; color:var(--lavender-deep);}
+  header p{margin:0 0 10px; font-size:13px; color:var(--ink-soft);}
+  .auth-row{
+    display:flex; justify-content:center; align-items:center; gap:8px;
+    font-size:12px; color:var(--ink-soft); margin-bottom:6px;
+  }
+  .auth-btn{
+    background:white; border:1px solid #E4DEF7; border-radius:999px;
+    padding:6px 14px; font-size:12px; font-weight:600; color:var(--lavender-deep);
+  }
+  .container{max-width:480px; margin:0 auto; padding:0 16px;}
+  .tabbar-wrap{margin-bottom:16px;}
+  .tabbar{display:flex; gap:8px; overflow-x:auto; padding-bottom:2px; scrollbar-width:none;}
+  .tabbar::-webkit-scrollbar{display:none;}
+  .tabbar.expanded{flex-wrap:wrap; overflow-x:visible;}
+  .tab{
+    flex:0 0 auto; padding:9px 16px; border-radius:999px; background:white;
+    color:var(--ink-soft); font-size:13px; font-weight:600; cursor:pointer;
+    border:1px solid #ECE7FA; white-space:nowrap;
+  }
+  .tab.active{background:var(--lavender-deep); color:white; border-color:var(--lavender-deep);}
+  .tabbar-toggle{
+    display:block; margin:6px auto 0; font-size:12px; color:var(--ink-soft);
+    background:none; font-weight:600;
+  }
+  .panel{display:none;} .panel.active{display:block;}
+  .card{background:white; border-radius:var(--radius); box-shadow:var(--shadow); padding:18px; margin-bottom:16px;}
+  .card h2{font-size:15px; margin:0 0 12px; color:var(--lavender-deep); display:flex; align-items:center; gap:6px;}
+
+  .chatlog{display:flex; flex-direction:column; gap:10px; margin-bottom:12px; max-height:340px; overflow-y:auto;}
+  .bubble{max-width:82%; padding:10px 14px; border-radius:16px; font-size:14px; line-height:1.5;}
+  .bubble.ai{align-self:flex-start; background:var(--sky); color:var(--ink); border-bottom-left-radius:4px;}
+  .bubble.user{align-self:flex-end; background:var(--lavender-deep); color:white; border-bottom-right-radius:4px;}
+
+  .chat-input-row{display:flex; gap:8px; align-items:flex-end;}
+  .chat-input-row textarea{
+    flex:1 1 auto; min-width:0; border:1px solid #E4DEF7; border-radius:16px;
+    padding:11px 14px; font-size:14px; font-family:inherit; outline:none;
+    resize:none; line-height:1.5; min-height:52px;
+  }
+  .chat-input-row textarea:focus{border-color:var(--lavender-deep);}
+
+  button{font-family:inherit; cursor:pointer; border:none;}
+  .btn-primary{
+    background:var(--lavender-deep); color:white; border-radius:14px;
+    padding:11px 16px; font-size:14px; font-weight:600;
+    white-space:nowrap; flex:0 0 auto;
+  }
+  .btn-primary:disabled{opacity:0.5; cursor:default;}
+  .btn-end{width:100%; margin-top:10px; background:var(--pink-deep); color:white; border-radius:14px; padding:11px; font-size:14px; font-weight:600;}
+  .loading{font-size:13px; color:var(--ink-soft); padding:6px 14px;}
+
+  .record{border-radius:16px; background:#FBFAFF; border:1px solid #EFEAFB; padding:12px 14px; margin-bottom:10px;}
+  .record-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
+  .record-date{font-size:12px; color:var(--ink-soft); font-weight:600;}
+  .stress-badge{font-size:12px; font-weight:700; padding:3px 10px; border-radius:999px;}
+  .chips{display:flex; flex-wrap:wrap; gap:6px;}
+  .chip{background:var(--lavender); color:var(--lavender-deep); font-size:12px; padding:4px 10px; border-radius:999px; font-weight:600;}
+  .chip.flag{background:var(--pink); color:#C24870;}
+  .raw-toggle{font-size:12px; color:var(--sky-deep); margin-top:8px; cursor:pointer; font-weight:600;}
+  .raw-content{display:none; margin-top:8px; padding-top:8px; border-top:1px dashed #E4DEF7; font-size:13px; color:var(--ink-soft); line-height:1.6;}
+  .raw-content.show{display:block;}
+
+  .field-label{font-size:13px; font-weight:600; margin:14px 0 8px; color:var(--ink);}
+  .option-grid{display:flex; flex-wrap:wrap; gap:8px;}
+  .option-btn{padding:8px 14px; border-radius:12px; background:#F5F2FF; border:1.5px solid transparent; font-size:13px; color:var(--ink); font-weight:500;}
+  .option-btn.selected{background:var(--sky); border-color:var(--sky-deep); color:var(--sky-deep); font-weight:700;}
+  textarea{width:100%; border:1px solid #E4DEF7; border-radius:14px; padding:11px 14px; font-size:14px; font-family:inherit; resize:vertical; min-height:56px; outline:none;}
+
+  .region-cat{border:1px solid #EFEAFB; border-radius:16px; margin-bottom:8px; overflow:hidden;}
+  .region-cat-header{
+    padding:12px 14px; font-size:13px; font-weight:700; color:var(--ink);
+    background:#FBFAFF; display:flex; justify-content:space-between; align-items:center;
+  }
+  .region-cat-header .count{font-size:11px; color:var(--pink-deep); font-weight:700;}
+  .region-cat-body{display:none; padding:10px 14px 14px; flex-wrap:wrap; gap:8px;}
+  .region-cat-body.open{display:flex;}
+  .region-chip{padding:7px 12px; border-radius:10px; background:#F5F2FF; font-size:12.5px; font-weight:600; color:var(--ink);}
+  .region-chip.selected{background:var(--pink); color:#C24870;}
+
+  .type-toggle{display:flex; gap:8px; margin-bottom:14px;}
+  .type-toggle button{flex:1; padding:12px; border-radius:14px; background:#F5F2FF; font-size:13px; font-weight:700; color:var(--ink-soft);}
+  .type-toggle button.selected.external{background:var(--mint); color:#2E8A6E;}
+  .type-toggle button.selected.internal{background:var(--lavender); color:var(--lavender-deep);}
+  .hint{font-size:11px; color:var(--ink-soft); margin-top:-8px; margin-bottom:12px; line-height:1.5;}
+  .hint{font-size:11px; color:var(--ink-soft); margin-top:6px; margin-bottom:8px; line-height:1.5;}
+  .empty{text-align:center; color:var(--ink-soft); font-size:13px; padding:30px 0;}
+  .disclaimer{background:var(--pink); border-radius:16px; padding:12px 14px; font-size:12px; color:#B04A6D; line-height:1.5;}
+  input[type="date"], input[type="text"], input[type="number"]{
+    width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;
+    font-size:14px;font-family:inherit;outline:none;
+  }
+  .date-nav{
+    position:sticky; top:0; z-index:20;
+    background:#FBF9FF;
+    border-top:1px solid #E9E1F7; border-bottom:1px solid #E9E1F7;
+    padding:10px 16px;
+    display:flex; align-items:center; justify-content:center; gap:2px;
+    margin-bottom:16px;
+  }
+  .date-nav-arrow{
+    width:32px; height:32px; border-radius:50%;
+    background:transparent; color:var(--lavender-deep); font-size:17px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; flex:0 0 auto;
+  }
+  .date-nav-center{
+    display:flex; align-items:baseline; gap:8px; padding:0 6px; flex:0 0 auto;
+  }
+  .date-nav-day{
+    font-family:'Gowun Dodum',sans-serif; font-size:18px; color:var(--lavender-deep); line-height:1.3;
+  }
+  .date-nav-weekday{font-size:12px; color:#B07FA8; font-weight:600;}
+  .date-nav-spacer{flex:1;}
+  .date-nav-today-btn{
+    font-size:12px; color:var(--sky-deep); background:none; font-weight:700;
+    padding:5px 12px; border-radius:999px; border:1px solid #CFE4F7; flex:0 0 auto;
+  }
+  .date-nav-today-btn.hidden{visibility:hidden;}
+
+  .toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--ink); color:white; padding:10px 20px; border-radius:999px; font-size:13px; opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:100;}
+  .toast.show{opacity:0.92;}
+
+  footer{max-width:480px; margin:20px auto 0; padding:0 16px;}
+  .med-note{font-size:10.5px; color:#B9AFCC; line-height:1.6; text-align:center;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌸 헬스로그</h1>
+  <p>오늘의 컨디션, 편하게 이야기하듯 남겨보세요</p>
+  <div class="auth-row" id="authRow">확인 중…</div>
+</header>
+
+<div class="date-nav">
+  <div class="date-nav-spacer"></div>
+  <button class="date-nav-arrow" id="dateNavPrev">‹</button>
+  <div class="date-nav-center">
+    <span class="date-nav-day" id="dateNavDay">8월 17일</span>
+    <span class="date-nav-weekday" id="dateNavWeekday">월요일</span>
+  </div>
+  <button class="date-nav-arrow" id="dateNavNext">›</button>
+  <div class="date-nav-spacer" style="display:flex; justify-content:flex-end;">
+    <button class="date-nav-today-btn hidden" id="dateNavTodayBtn">오늘로</button>
+  </div>
+</div>
+
+<div class="container">
+  <div class="tabbar-wrap">
+    <div class="tabbar" id="tabbar">
+      <div class="tab active" data-tab="checkin">💬 오늘 체크인</div>
+      <div class="tab" data-tab="stress">🧠 스트레스 신호</div>
+      <div class="tab" data-tab="pain">🩹 통증 기록</div>
+      <div class="tab" data-tab="cycle">🌙 생리주기</div>
+      <div class="tab" data-tab="medical">💊 지병·약물</div>
+      <div class="tab" data-tab="body">📊 체성분·검진</div>
+      <div class="tab" data-tab="exercise">🏋️ 운동</div>
+      <div class="tab" data-tab="diet">🍽 식단</div>
+      <div class="tab" data-tab="history">📖 기록 보기</div>
+    </div>
+    <button class="tabbar-toggle" id="tabbarToggle">▾ 전체 보기</button>
+  </div>
+
+  <!-- CHECKIN -->
+  <div class="panel active" id="panel-checkin">
+    <div class="card">
+      <h2>오늘 컨디션 어때?</h2>
+      <div class="chatlog" id="chatlog"></div>
+      <div id="loadingRow"></div>
+      <div class="chat-input-row">
+        <textarea id="chatInput" rows="2" placeholder="편하게 적어주세요…"></textarea>
+        <button class="btn-primary" id="sendBtn">전송</button>
+      </div>
+      <button class="btn-end" id="endBtn" style="display:none;">대화 마치고 요약 저장</button>
+    </div>
+  </div>
+
+  <!-- STRESS SIGNALS -->
+  <div class="panel" id="panel-stress">
+    <div class="card">
+      <h2>🧠 스트레스 · 정신적 신호 기록</h2>
+      <div class="field-label">어떤 신호가 있었어요? (복수 선택)</div>
+      <div class="option-grid" id="stress-symptoms">
+        <div class="option-btn" data-v="두근거림/가슴답답">두근거림/가슴답답</div>
+        <div class="option-btn" data-v="현기증/어지럼">현기증/어지럼</div>
+        <div class="option-btn" data-v="손발 저림">손발 저림</div>
+        <div class="option-btn" data-v="식은땀">식은땀</div>
+        <div class="option-btn" data-v="소화불량/속쓰림">소화불량/속쓰림</div>
+        <div class="option-btn" data-v="두통">두통</div>
+        <div class="option-btn" data-v="집중력 저하">집중력 저하</div>
+        <div class="option-btn" data-v="불안감">불안감</div>
+        <div class="option-btn" data-v="목/어깨 긴장">목/어깨 긴장</div>
+        <div class="option-btn" data-v="짜증/예민함">짜증/예민함</div>
+        <div class="option-btn" data-v="무기력함">무기력함</div>
+        <div class="option-btn" data-v="잠들기 어려움">잠들기 어려움</div>
+      </div>
+
+      <div class="field-label">언제 그랬어요?</div>
+      <div class="option-grid" id="stress-timing">
+        <div class="option-btn" data-v="활동 중">활동 중</div>
+        <div class="option-btn" data-v="휴식/안정 중">휴식/안정 중</div>
+        <div class="option-btn" data-v="기상 직후">기상 직후</div>
+        <div class="option-btn" data-v="식사 후">식사 후</div>
+        <div class="option-btn" data-v="공복 상태">공복 상태</div>
+        <div class="option-btn" data-v="업무/야근 중">업무/야근 중</div>
+      </div>
+
+      <div class="field-label">지속 시간</div>
+      <div class="option-grid" id="stress-duration">
+        <div class="option-btn" data-v="몇 초~1분">몇 초~1분</div>
+        <div class="option-btn" data-v="수 분">수 분</div>
+        <div class="option-btn" data-v="10분 이상">10분 이상</div>
+        <div class="option-btn" data-v="반복적으로 계속">반복적으로 계속</div>
+      </div>
+
+      <div class="field-label">추가로 남기고 싶은 말 (선택)</div>
+      <textarea id="stress-note" placeholder="카페인, 수면 부족, 생리 전이었는지 등 떠오르는 게 있으면"></textarea>
+
+      <button class="btn-primary" style="width:100%;margin-top:14px;" id="stress-save">기록 저장</button>
+    </div>
+  </div>
+
+  <!-- PAIN -->
+  <div class="panel" id="panel-pain">
+    <div class="card">
+      <h2>🩹 통증 부위</h2>
+      <div id="regionCats"></div>
+      <div class="field-label" style="margin-top:16px;">선택된 부위</div>
+      <div class="chips" id="selectedRegionsView"><span style="font-size:12px;color:var(--ink-soft);">아직 없음</span></div>
+
+      <div class="field-label">외부 통증인가요, 내장 쪽 느낌인가요?</div>
+      <div class="type-toggle">
+        <button id="type-external" data-v="외부(근육·관절·피부)">외부<br><span style="font-weight:400;font-size:11px;">근육·관절·피부</span></button>
+        <button id="type-internal" data-v="내장(장기 느낌)">내장<br><span style="font-weight:400;font-size:11px;">장기 쪽 느낌</span></button>
+      </div>
+      <div class="hint">※ 정확한 구분은 의료 검사가 필요해요. 콕 집어 아프고 눌렀을 때 아프면 외부(근골격), 넓게 퍼지고 조이거나 욱신거리면 내장 쪽에 가까운 경향이 있어 참고용으로만 구분해요.</div>
+
+      <div class="field-label">통증 양상 (복수 선택)</div>
+      <div class="option-grid" id="pain-quality">
+        <div class="option-btn" data-v="콕콕 쑤심">콕콕 쑤심</div>
+        <div class="option-btn" data-v="담 온듯 뻐근함">담 온듯 뻐근함</div>
+        <div class="option-btn" data-v="눌렀을때 아픔">눌렀을때 아픔</div>
+        <div class="option-btn" data-v="저림">저림</div>
+        <div class="option-btn" data-v="화끈거림">화끈거림</div>
+        <div class="option-btn" data-v="조이는 느낌">조이는 느낌</div>
+        <div class="option-btn" data-v="욱신거림">욱신거림</div>
+      </div>
+
+      <div class="field-label">강도: <span id="pain-intensity-val">5</span> / 10</div>
+      <input type="range" id="pain-intensity" min="1" max="10" value="5" style="width:100%;">
+
+      <button class="btn-primary" style="width:100%;margin-top:14px;" id="pain-save">기록 저장</button>
+    </div>
+  </div>
+
+  <!-- CYCLE -->
+  <div class="panel" id="panel-cycle">
+    <div class="card">
+      <h2>🌙 예측</h2>
+      <div id="cyclePrediction"><div class="empty">생리 시작일을 1회 이상 기록하면 예측이 시작돼요</div></div>
+      <div id="cycleWarning"></div>
+    </div>
+
+    <div class="card">
+      <h2>주기 기록하기</h2>
+      <div class="field-label">시작일</div>
+      <input type="date" id="cycle-start">
+      <div class="field-label">종료일 (진행 중이면 비워두세요)</div>
+      <input type="date" id="cycle-end">
+      <button class="btn-primary" style="width:100%;margin-top:12px;" id="cycle-add">이 기간으로 주기 추가</button>
+      <div class="hint">지난 주기도 시작일·종료일을 골라서 나중에 추가할 수 있어요.</div>
+
+      <div class="field-label" style="margin-top:18px;">오늘 PMS · 생리 증상 (선택)</div>
+      <div class="field-label">증상</div>
+      <div class="option-grid" id="pms-symptoms">
+        <div class="option-btn" data-v="복통">복통</div>
+        <div class="option-btn" data-v="두통">두통</div>
+        <div class="option-btn" data-v="유방 압통">유방 압통</div>
+        <div class="option-btn" data-v="부종">부종</div>
+        <div class="option-btn" data-v="감정기복">감정기복</div>
+        <div class="option-btn" data-v="피로감">피로감</div>
+        <div class="option-btn" data-v="여드름">여드름</div>
+        <div class="option-btn" data-v="식욕변화">식욕변화</div>
+      </div>
+
+      <div class="field-label">기초체온 (선택, 기상 직후 측정)</div>
+      <input type="number" step="0.01" id="bbt-input" placeholder="예: 36.52">
+
+      <button class="btn-primary" style="width:100%;margin-top:14px;" id="pms-save">증상 저장</button>
+    </div>
+
+    <div class="card">
+      <h2>주기 기록 (최근순)</h2>
+      <div id="cycleHistoryList"><div class="empty">아직 기록 없음</div></div>
+    </div>
+  </div>
+
+  <!-- MEDICAL PROFILE -->
+  <div class="panel" id="panel-medical">
+    <div class="card">
+      <h2>🩺 지병</h2>
+      <div id="conditionList"><div class="empty">등록된 지병 없음</div></div>
+      <div class="field-label">진단명</div>
+      <input type="text" id="cond-name" placeholder="예: 편두통" style="width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;">
+      <div class="field-label">진단 시기 / 메모 (선택)</div>
+      <input type="text" id="cond-note" placeholder="예: 2022년부터, 스트레스 시 악화" style="width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;">
+      <button class="btn-primary" style="width:100%;margin-top:12px;" id="cond-add">지병 추가</button>
+    </div>
+
+    <div class="card">
+      <h2>💊 복용 중인 약물</h2>
+      <div id="medList"><div class="empty">등록된 약물 없음</div></div>
+      <div class="field-label">약 이름</div>
+      <input type="text" id="med-name" placeholder="예: 타이레놀" style="width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;">
+      <div class="field-label">용량</div>
+      <input type="text" id="med-dose" placeholder="예: 500mg 1정" style="width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;">
+      <div class="field-label">복용 주기</div>
+      <div class="option-grid" id="med-freq">
+        <div class="option-btn" data-v="1일 1회 아침">1일 1회 아침</div>
+        <div class="option-btn" data-v="1일 1회 저녁">1일 1회 저녁</div>
+        <div class="option-btn" data-v="1일 2회">1일 2회</div>
+        <div class="option-btn" data-v="1일 3회">1일 3회</div>
+        <div class="option-btn" data-v="필요시 복용">필요시 복용</div>
+        <div class="option-btn" data-v="주 1회">주 1회</div>
+      </div>
+      <div class="field-label">처방 기관 / 기간 (선택)</div>
+      <input type="text" id="med-note" placeholder="예: OO내과, 3개월 처방" style="width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;">
+      <button class="btn-primary" style="width:100%;margin-top:12px;" id="med-add">약물 추가</button>
+    </div>
+
+    <div class="card">
+      <h2>🌿 영양제</h2>
+      <div id="suppList"><div class="empty">등록된 영양제 없음</div></div>
+      <div class="field-label">이름</div>
+      <input type="text" id="supp-name" placeholder="예: 마그네슘" style="width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;">
+      <div class="field-label">용량 / 복용 주기</div>
+      <input type="text" id="supp-dose" placeholder="예: 400mg, 1일 1회 저녁" style="width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;">
+      <button class="btn-primary" style="width:100%;margin-top:12px;" id="supp-add">영양제 추가</button>
+    </div>
+
+    <div class="hint" style="padding:0 4px;">이 정보는 통증·스트레스 분석 시 배경 참고용으로만 함께 고려돼요. 약물 상호작용 등 전문적 판단은 약사·의사와 상담하세요.</div>
+  </div>
+
+  <!-- BODY COMPOSITION & CHECKUP -->
+  <div class="panel" id="panel-body">
+    <div class="card">
+      <h2>📊 체성분 기록</h2>
+      <div class="field-label">인바디 결과지 사진으로 자동 인식 (선택)</div>
+      <input type="file" id="body-photo" accept="image/*" style="width:100%;font-size:13px;">
+      <div id="body-photo-status" class="hint" style="display:none;"></div>
+
+      <div class="field-label">체중 (kg)</div>
+      <input type="number" step="0.1" id="bc-weight" style="width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;">
+      <div class="field-label">골격근량 (kg)</div>
+      <input type="number" step="0.1" id="bc-muscle" style="width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;">
+      <div class="field-label">체지방률 (%)</div>
+      <input type="number" step="0.1" id="bc-fatpct" style="width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;">
+      <div class="field-label">체지방량 (kg)</div>
+      <input type="number" step="0.1" id="bc-fatmass" style="width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;">
+      <div class="field-label">기초대사량 (kcal, 선택)</div>
+      <input type="number" step="1" id="bc-bmr" style="width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;">
+
+      <button class="btn-primary" style="width:100%;margin-top:12px;" id="bc-save">체성분 기록 저장</button>
+    </div>
+
+    <div class="card">
+      <h2>체중 · 체지방률 추이</h2>
+      <div id="bcTrend"><div class="empty">기록이 2개 이상 쌓이면 추이가 보여요</div></div>
+    </div>
+
+    <div class="card">
+      <h2>🏥 건강검진 결과</h2>
+      <div id="checkupList"><div class="empty">등록된 결과 없음</div></div>
+      <div class="field-label">항목명</div>
+      <input type="text" id="ck-name" placeholder="예: 공복혈당, 총콜레스테롤, 혈압" style="width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;">
+      <div class="field-label">수치</div>
+      <input type="text" id="ck-value" placeholder="예: 95 mg/dL, 120/80" style="width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;">
+      <button class="btn-primary" style="width:100%;margin-top:12px;" id="ck-add">검진 결과 추가</button>
+    </div>
+  </div>
+
+  <!-- EXERCISE -->
+  <div class="panel" id="panel-exercise">
+    <div class="card">
+      <h2>🏋️ 오늘 운동 기록</h2>
+      <div class="field-label">운동 종류</div>
+      <div class="option-grid" id="ex-type">
+        <div class="option-btn" data-v="홈트">홈트</div>
+        <div class="option-btn" data-v="헬스(웨이트)">헬스(웨이트)</div>
+        <div class="option-btn" data-v="수영">수영</div>
+        <div class="option-btn" data-v="러닝">러닝</div>
+        <div class="option-btn" data-v="걷기">걷기</div>
+        <div class="option-btn" data-v="요가/필라테스">요가/필라테스</div>
+        <div class="option-btn" data-v="기타">기타</div>
+      </div>
+
+      <div class="field-label">강도</div>
+      <div class="option-grid" id="ex-intensity">
+        <div class="option-btn" data-v="가볍게">가볍게</div>
+        <div class="option-btn selected" data-v="보통">보통</div>
+        <div class="option-btn" data-v="격렬하게">격렬하게</div>
+      </div>
+
+      <div class="field-label">운동 시간 (분)</div>
+      <input type="number" id="ex-duration" placeholder="예: 40" style="width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;">
+
+      <div id="ex-volume-fields" style="display:none;">
+        <div class="field-label">세트 수</div>
+        <input type="number" id="ex-sets" style="width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;">
+        <div class="field-label">세트당 반복 횟수</div>
+        <input type="number" id="ex-reps" style="width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;">
+        <div class="field-label">평균 중량 (kg)</div>
+        <input type="number" id="ex-weight" style="width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;">
+        <div class="hint">근력운동 볼륨(세트×횟수×중량) 추이로 근력 향상 경향을 참고할 수 있어요.</div>
+      </div>
+
+      <div id="ex-bodyweight-note" class="hint"></div>
+
+      <button class="btn-primary" style="width:100%;margin-top:12px;" id="ex-save">운동 기록 저장</button>
+    </div>
+
+    <div class="card">
+      <h2>추정 효과</h2>
+      <div id="ex-effect-result"><div class="empty">운동을 저장하면 추정 소모 칼로리가 나와요</div></div>
+      <div class="hint">MET(운동강도) × 체중 × 시간 공식 기반 추정치예요. 실제 대사량은 개인차가 커서 참고용으로만 봐주세요. 지방 감소량은 지방 1kg≈7,700kcal 이론치를 근사한 값이라 오차가 클 수 있어요.</div>
+    </div>
+
+    <div class="card">
+      <h2>근력 운동 볼륨 추이</h2>
+      <div id="volumeTrend"><div class="empty">헬스 기록이 2개 이상 쌓이면 추이가 보여요</div></div>
+    </div>
+
+    <div class="card">
+      <h2>📅 이번 주 운동 계획</h2>
+      <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px;">
+        <button class="date-nav-arrow" id="planWeekPrev" style="background:#F5F2FF;">‹</button>
+        <div style="text-align:center;">
+          <div style="font-family:'Gowun Dodum',sans-serif;font-size:15px;color:var(--lavender-deep);" id="planWeekLabel">8/17(월)~8/23(일)</div>
+        </div>
+        <button class="date-nav-arrow" id="planWeekNext" style="background:#F5F2FF;">›</button>
+      </div>
+      <button class="btn-ghost" style="width:100%;margin-bottom:14px;" id="plan-copy-prev">지난 주와 동일하게 복사</button>
+
+      <div id="weeklyPlanGrid"></div>
+      <button class="btn-primary" style="width:100%;margin-top:12px;" id="plan-save">이번 주 계획 저장</button>
+      <div class="hint">하루에 여러 운동을 겹쳐서 선택할 수 있고, 목록에 없는 운동은 직접 입력해서 추가할 수 있어요. 저장해두면 다음 식단 설계 때 그날 운동에 맞춰 영양소를 제안해줘요.</div>
+    </div>
+  </div>
+
+  <!-- DIET -->
+  <div class="panel" id="panel-diet">
+    <div class="card">
+      <h2>🎯 오늘의 영양 목표</h2>
+      <div id="dietTarget"><div class="empty">불러오는 중…</div></div>
+      <div class="hint">운동 탭에 등록된 이번 주 계획과 체성분 탭의 기초대사량을 기준으로 한 참고용 추정치예요. 개인 맞춤 처방이 아니에요.</div>
+    </div>
+
+    <div class="card">
+      <h2>🍽 식사 기록</h2>
+      <div class="field-label">끼니</div>
+      <div class="option-grid" id="meal-type">
+        <div class="option-btn" data-v="아침">아침</div>
+        <div class="option-btn" data-v="점심">점심</div>
+        <div class="option-btn" data-v="저녁">저녁</div>
+        <div class="option-btn" data-v="간식">간식</div>
+      </div>
+
+      <div class="field-label">사진으로 자동 인식 (선택)</div>
+      <input type="file" id="meal-photo" accept="image/*" style="width:100%;font-size:13px;">
+      <div id="meal-photo-status" class="hint" style="display:none;"></div>
+
+      <div class="field-label">음식 이름</div>
+      <input type="text" id="meal-name" placeholder="예: 닭가슴살 샐러드">
+      <div class="field-label">칼로리 (kcal)</div>
+      <input type="number" id="meal-kcal">
+      <div class="field-label">탄수화물 (g)</div>
+      <input type="number" id="meal-carb">
+      <div class="field-label">단백질 (g)</div>
+      <input type="number" id="meal-protein">
+      <div class="field-label">지방 (g)</div>
+      <input type="number" id="meal-fat">
+
+      <button class="btn-primary" style="width:100%;margin-top:12px;" id="meal-save">식사 기록 저장</button>
+    </div>
+
+    <div class="card">
+      <h2>오늘 합계</h2>
+      <div id="dietSummary"><div class="empty">오늘 기록된 식사가 없어요</div></div>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="panel" id="panel-history">
+    <div class="card">
+      <h2>📖 최근 기록</h2>
+      <div id="historyList"><div class="empty">아직 기록이 없어요</div></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="med-note">이 앱의 분석은 패턴 참고용이며 의료적 진단이 아닙니다. 증상이 반복되거나 심해지면 병원 진료를 받아보세요.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ====== 여기에 기존 shinshim-diary Firebase 프로젝트 설정값을 붙여넣으세요 ======
+// Firebase 콘솔 > 프로젝트 설정 > 일반 > 내 앱 에서 확인 가능
+// Authentication > Sign-in method 에서 Google 로그인만 켜면 별도 API 키 없이 바로 동작해요
+const firebaseConfig = {
+  apiKey: "AIzaSyAvtgUROy9sqe4mnjcb3HV4TzRQ6bXsCQA",
+  authDomain: "shinshim-diary.firebaseapp.com",
+  databaseURL: "https://shinshim-diary-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "shinshim-diary",
+  storageBucket: "shinshim-diary.firebasestorage.app",
+  messagingSenderId: "736639802328",
+  appId: "1:736639802328:web:1a8dabc364c22af453f0ad"
+};
+const firebaseConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY";
+
+// Firebase는 동적 import + try/catch로 분리해서 로딩 실패해도(예: file://로 로컬 실행 시
+// CORS로 모듈 로딩이 막히는 경우) 나머지 앱 기능(탭, 체크인, 기록 저장)은 항상 정상 작동하게 함.
+let firebaseReady = false;
+let auth=null, db=null, currentUser=null;
+let fbAuthFns=null, fbStoreFns=null;
+
+const authRow = document.getElementById('authRow');
+
+(async function setupFirebase(){
+  if(!firebaseConfigured){
+    authRow.innerHTML = `<span>🔓 로컬 저장 모드 (Firebase 설정 전)</span>`;
+    return;
+  }
+  try{
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+    const authMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+    const storeMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"); // collection, addDoc, getDocs, deleteDoc, doc 등 전체 포함
+    fbAuthFns = authMod;
+    fbStoreFns = storeMod;
+    const app = initializeApp(firebaseConfig);
+    auth = authMod.getAuth(app);
+    db = storeMod.getFirestore(app);
+    firebaseReady = true;
+    authMod.onAuthStateChanged(auth, user=>{
+      currentUser = user;
+      renderAuthRow();
+    });
+  }catch(e){
+    console.warn('Firebase 로딩 실패, 로컬 저장 모드로 전환', e);
+    authRow.innerHTML = `<span>🔓 로컬 저장 모드 (온라인 연결 필요)</span>`;
+  }
+})();
+
+function renderAuthRow(){
+  if(currentUser){
+    authRow.innerHTML = `<span>👋 ${currentUser.displayName || '사용자'}님</span><button class="auth-btn" id="logoutBtn">로그아웃</button>`;
+    document.getElementById('logoutBtn').onclick = ()=> fbAuthFns.signOut(auth);
+  } else {
+    authRow.innerHTML = `<button class="auth-btn" id="loginBtn">🔐 Google로 로그인 (백업 켜기)</button>`;
+    document.getElementById('loginBtn').onclick = ()=>
+      fbAuthFns.signInWithPopup(auth, new fbAuthFns.GoogleAuthProvider()).catch(e=>showToast('로그인 실패: '+e.message));
+  }
+}
+
+// ---------- Generic helpers ----------
+const $ = (sel, el=document) => el.querySelector(sel);
+const $$ = (sel, el=document) => [...el.querySelectorAll(sel)];
+
+$$('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    $$('.tab').forEach(t=>t.classList.remove('active'));
+    $$('.panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-'+tab.dataset.tab).classList.add('active');
+    if(tab.dataset.tab==='history') renderHistory();
+    if(tab.dataset.tab==='cycle') renderCycle();
+    if(tab.dataset.tab==='medical') renderMedicalProfile();
+    if(tab.dataset.tab==='body') renderBodyPanel();
+    if(tab.dataset.tab==='exercise') renderExercisePanel();
+    if(tab.dataset.tab==='diet') renderDietPanel();
+  });
+});
+
+const tabbarEl = document.getElementById('tabbar');
+const tabbarToggle = document.getElementById('tabbarToggle');
+tabbarToggle.addEventListener('click', ()=>{
+  const expanded = tabbarEl.classList.toggle('expanded');
+  tabbarToggle.textContent = expanded ? '▴ 접기' : '▾ 전체 보기';
+});
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+function miniBars(values, unit, color){
+  if(values.length<2) return '';
+  const min = Math.min(...values), max = Math.max(...values);
+  const range = (max-min)||1;
+  return `<div style="display:flex;align-items:flex-end;gap:6px;height:80px;margin-bottom:6px;">
+    ${values.map(v=>{
+      const h = 20 + ((v-min)/range)*55;
+      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;">
+        <div style="font-size:10px;color:${color};margin-bottom:2px;">${Math.round(v*10)/10}</div>
+        <div style="width:100%;background:${color};border-radius:6px 6px 0 0;height:${h}px;"></div>
+      </div>`;
+    }).join('')}
+  </div>
+  <div class="hint">최근 ${values.length}회 · 단위: ${unit}</div>`;
+}
+
+// ---------- Global active date (신심일기 스타일 상단 날짜 내비게이션) ----------
+let activeDate = new Date().toISOString().slice(0,10);
+const WEEKDAY_KR_FULL = ['일요일','월요일','화요일','수요일','목요일','금요일','토요일'];
+
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+
+function renderDateNav(){
+  const d = new Date(activeDate);
+  document.getElementById('dateNavDay').textContent = `${d.getMonth()+1}월 ${d.getDate()}일`;
+  document.getElementById('dateNavWeekday').textContent = WEEKDAY_KR_FULL[d.getDay()];
+  document.getElementById('dateNavTodayBtn').classList.toggle('hidden', activeDate===todayStr());
+  initDateFields();
+}
+
+function shiftDate(n){
+  const d = new Date(activeDate);
+  d.setDate(d.getDate()+n);
+  activeDate = d.toISOString().slice(0,10);
+  renderDateNav();
+}
+
+document.getElementById('dateNavPrev').onclick = ()=> shiftDate(-1);
+document.getElementById('dateNavNext').onclick = ()=> shiftDate(1);
+document.getElementById('dateNavTodayBtn').onclick = ()=>{ activeDate = todayStr(); renderDateNav(); };
+
+function initDateFields(){
+  // 생리주기 시작일만 상단 내비게이션 날짜로 기본값 설정 (나머지 일일기록은 activeDate를 직접 사용)
+  const cs = document.getElementById('cycle-start');
+  if(cs) cs.value = activeDate;
+}
+renderDateNav();
+initDateFields();
+
+function setupMultiSelect(id){
+  const c = document.getElementById(id);
+  c.addEventListener('click', e=>{
+    const b = e.target.closest('.option-btn'); if(!b) return;
+    b.classList.toggle('selected');
+  });
+}
+function setupSingleSelect(id){
+  const c = document.getElementById(id);
+  c.addEventListener('click', e=>{
+    const b = e.target.closest('.option-btn'); if(!b) return;
+    $$('.selected', c).forEach(x=>x.classList.remove('selected'));
+    b.classList.add('selected');
+  });
+}
+function getSelected(id){ return $$('.selected', document.getElementById(id)).map(b=>b.dataset.v); }
+
+setupMultiSelect('stress-symptoms');
+setupSingleSelect('stress-timing');
+setupSingleSelect('stress-duration');
+setupMultiSelect('pain-quality');
+
+document.getElementById('type-external').onclick = ()=>{
+  document.getElementById('type-external').classList.add('selected','external');
+  document.getElementById('type-internal').classList.remove('selected','internal');
+};
+document.getElementById('type-internal').onclick = ()=>{
+  document.getElementById('type-internal').classList.add('selected','internal');
+  document.getElementById('type-external').classList.remove('selected','external');
+};
+document.getElementById('pain-intensity').addEventListener('input', e=>{
+  document.getElementById('pain-intensity-val').textContent = e.target.value;
+});
+
+// ---------- Pain region drill-down ----------
+const bodyRegions = {
+  "머리/목": ["정수리","이마","관자놀이","뒷목","목 옆"],
+  "어깨/팔": ["어깨","위팔","팔꿈치","아래팔","손목"],
+  "손": ["손등","손바닥","손가락"],
+  "가슴/배": ["가슴","명치","윗배","옆구리","아랫배"],
+  "등/허리": ["등 위쪽","등 아래","허리","골반"],
+  "다리": ["고관절","허벅지","무릎","정강이","종아리"],
+  "발": ["발목","발등","발바닥","발가락","뒤꿈치"]
+};
+let selectedRegions = [];
+
+const regionCatsEl = document.getElementById('regionCats');
+Object.entries(bodyRegions).forEach(([cat, subs])=>{
+  const wrap = document.createElement('div');
+  wrap.className = 'region-cat';
+  wrap.innerHTML = `
+    <div class="region-cat-header" data-cat="${cat}">
+      <span>${cat}</span><span class="count"></span>
+    </div>
+    <div class="region-cat-body">
+      ${subs.map(s=>`<div class="region-chip" data-full="${cat}>${s}">${s}</div>`).join('')}
+    </div>`;
+  regionCatsEl.appendChild(wrap);
+});
+
+regionCatsEl.addEventListener('click', e=>{
+  const header = e.target.closest('.region-cat-header');
+  if(header){
+    header.nextElementSibling.classList.toggle('open');
+    return;
+  }
+  const chip = e.target.closest('.region-chip');
+  if(chip){
+    chip.classList.toggle('selected');
+    const full = chip.dataset.full;
+    if(selectedRegions.includes(full)) selectedRegions = selectedRegions.filter(r=>r!==full);
+    else selectedRegions.push(full);
+    renderSelectedRegions();
+  }
+});
+
+function renderSelectedRegions(){
+  const el = document.getElementById('selectedRegionsView');
+  if(selectedRegions.length===0){ el.innerHTML = '<span style="font-size:12px;color:var(--ink-soft);">아직 없음</span>'; return; }
+  el.innerHTML = selectedRegions.map(r=>`<span class="chip flag">${r}</span>`).join('');
+  $$('.region-cat-header').forEach(h=>{
+    const cat = h.dataset.cat;
+    const n = selectedRegions.filter(r=>r.startsWith(cat+'>')).length;
+    h.querySelector('.count').textContent = n>0 ? `${n}곳 선택` : '';
+  });
+}
+
+// ---------- Hybrid storage (Firestore or local artifact storage) ----------
+async function saveRecord(col, data, dateOverride){
+  data.savedAt = Date.now();
+  data.date = dateOverride || new Date().toISOString().slice(0,10);
+  if(firebaseReady && currentUser){
+    try{
+      const ref = await fbStoreFns.addDoc(fbStoreFns.collection(db, 'users', currentUser.uid, col), data);
+      return ref.id;
+    }catch(e){
+      console.error('Firestore 저장 실패', e);
+      showToast('⚠️ 저장에 실패했어요. 다시 시도해주세요');
+      return null;
+    }
+  } else {
+    const key = `${col}:${data.date}:${Date.now()}`;
+    const maxAttempts = 3;
+    for(let attempt=1; attempt<=maxAttempts; attempt++){
+      try{
+        const res = await window.storage.set(key, JSON.stringify(data), false);
+        if(res) return key;
+        throw new Error('빈 응답');
+      }catch(e){
+        console.warn(`storage.set 실패 (${attempt}/${maxAttempts})`, e);
+        if(attempt<maxAttempts) await new Promise(r=>setTimeout(r, 400*attempt));
+      }
+    }
+    showToast('⚠️ 저장에 실패했어요. 네트워크를 확인하고 다시 시도해주세요');
+    return null;
+  }
+}
+async function listRecords(col){
+  if(firebaseReady && currentUser){
+    const snap = await fbStoreFns.getDocs(fbStoreFns.collection(db, 'users', currentUser.uid, col));
+    return snap.docs.map(d=>({ _id:d.id, ...d.data() }));
+  } else {
+    try{
+      const r = await window.storage.list(col+':', false);
+      if(!r || !r.keys) return [];
+      const items = [];
+      for(const k of r.keys){
+        try{ const v = await window.storage.get(k, false); if(v) items.push({ _id:k, ...JSON.parse(v.value) }); }catch(e){}
+      }
+      return items;
+    }catch(e){ return []; }
+  }
+}
+async function deleteRecord(col, id){
+  if(firebaseReady && currentUser){
+    await fbStoreFns.deleteDoc(fbStoreFns.doc(db, 'users', currentUser.uid, col, id));
+  } else {
+    try{ await window.storage.delete(id, false); }catch(e){ console.error(e); }
+  }
+}
+
+// ---------- Stress signal save ----------
+document.getElementById('stress-save').onclick = async ()=>{
+  const symptoms = getSelected('stress-symptoms');
+  if(symptoms.length===0){ showToast('신호를 하나 이상 선택해주세요'); return; }
+  const record = {
+    type:'stress',
+    symptoms,
+    timing: getSelected('stress-timing')[0] || '미기재',
+    duration: getSelected('stress-duration')[0] || '미기재',
+    note: document.getElementById('stress-note').value.trim()
+  };
+  const id = await saveRecord('stressSignals', record, activeDate);
+  if(!id) return;
+  showToast('스트레스 신호 기록 저장됐어요');
+  document.getElementById('stress-note').value='';
+  $$('#panel-stress .selected').forEach(b=>b.classList.remove('selected'));
+};
+
+// ---------- Pain save ----------
+document.getElementById('pain-save').onclick = async ()=>{
+  if(selectedRegions.length===0){ showToast('부위를 선택해주세요'); return; }
+  const type = document.getElementById('type-internal').classList.contains('selected') ? '내장(장기 느낌)' :
+               (document.getElementById('type-external').classList.contains('selected') ? '외부(근육·관절·피부)' : '미선택');
+  const record = {
+    type:'pain',
+    regions: [...selectedRegions],
+    painType: type,
+    quality: getSelected('pain-quality'),
+    intensity: document.getElementById('pain-intensity').value
+  };
+  const id = await saveRecord('painRecords', record, activeDate);
+  if(!id) return;
+  showToast('통증 기록 저장됐어요');
+  selectedRegions = [];
+  renderSelectedRegions();
+  $$('.region-chip.selected').forEach(c=>c.classList.remove('selected'));
+  $$('#panel-pain .selected').forEach(b=>b.classList.remove('selected'));
+};
+
+// ---------- Cycle tracking (range-based) ----------
+setupMultiSelect('pms-symptoms');
+
+document.getElementById('cycle-add').onclick = async ()=>{
+  const start = document.getElementById('cycle-start').value;
+  const end = document.getElementById('cycle-end').value || null;
+  if(!start){ showToast('시작일을 선택해주세요'); return; }
+  if(end && end < start){ showToast('종료일이 시작일보다 빠를 수 없어요'); return; }
+  const id = await saveRecord('periodCycles', { startDate: start, endDate: end }, start);
+  if(!id) return;
+  showToast('주기가 기록됐어요');
+  document.getElementById('cycle-end').value='';
+  renderCycle();
+};
+document.getElementById('pms-save').onclick = async ()=>{
+  const symptoms = getSelected('pms-symptoms');
+  const bbt = document.getElementById('bbt-input').value;
+  if(symptoms.length===0 && !bbt){ showToast('증상이나 체온을 입력해주세요'); return; }
+  const id = await saveRecord('pmsLogs', { symptoms, bbt: bbt ? parseFloat(bbt) : null }, activeDate);
+  if(!id) return;
+  showToast('증상 저장됐어요');
+  $$('#panel-cycle .selected').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('bbt-input').value='';
+  renderCycle();
+};
+
+function daysBetween(d1, d2){
+  return Math.round((new Date(d2) - new Date(d1)) / (1000*60*60*24));
+}
+function addDays(dateStr, n){
+  const d = new Date(dateStr);
+  d.setDate(d.getDate()+n);
+  return d.toISOString().slice(0,10);
+}
+function fmtDate(dateStr){
+  const d = new Date(dateStr);
+  return `${d.getMonth()+1}월 ${d.getDate()}일`;
+}
+const WEEKDAY_KR = ['일','월','화','수','목','금','토'];
+function fmtDateWithDay(dateStr){
+  const d = new Date(dateStr);
+  return `${d.getMonth()+1}/${d.getDate()}(${WEEKDAY_KR[d.getDay()]})`;
+}
+function fmtCycleRange(start, end){
+  const s = new Date(start);
+  const weekNum = Math.ceil(s.getDate()/7);
+  const label = end ? `${fmtDateWithDay(start)}~${fmtDateWithDay(end)}` : `${fmtDateWithDay(start)}~진행중`;
+  return `${label} · ${s.getMonth()+1}월 ${weekNum}주차`;
+}
+
+async function renderCycle(){
+  const cycles = (await listRecords('periodCycles')).sort((a,b)=> a.startDate.localeCompare(b.startDate));
+  const uniqueStarts = [...new Set(cycles.map(c=>c.startDate))];
+
+  const predEl = document.getElementById('cyclePrediction');
+  const warnEl = document.getElementById('cycleWarning');
+  const listEl = document.getElementById('cycleHistoryList');
+  warnEl.innerHTML = '';
+
+  if(uniqueStarts.length===0){
+    predEl.innerHTML = '<div class="empty">생리 시작일을 1회 이상 기록하면 예측이 시작돼요</div>';
+    listEl.innerHTML = '<div class="empty">아직 기록 없음</div>';
+    return;
+  }
+
+  const lastStart = uniqueStarts[uniqueStarts.length-1];
+
+  if(uniqueStarts.length===1){
+    predEl.innerHTML = `
+      <div class="chips"><span class="chip">최근 시작일: ${fmtDate(lastStart)}</span></div>
+      <div class="hint" style="margin-top:10px;">주기 하나만 기록되면 정확한 예측은 어려워요. 다음 생리도 기록해주시면 평균 주기로 예측을 시작할게요.</div>`;
+  } else {
+    const recentStarts = uniqueStarts.slice(-6);
+    const intervals = [];
+    for(let i=1;i<recentStarts.length;i++) intervals.push(daysBetween(recentStarts[i-1], recentStarts[i]));
+    const avgCycle = Math.round(intervals.reduce((a,b)=>a+b,0)/intervals.length);
+    const nextPeriod = addDays(lastStart, avgCycle);
+    const ovulation = addDays(nextPeriod, -14);
+    const fertileStart = addDays(ovulation, -5);
+    const fertileEnd = addDays(ovulation, 1);
+
+    predEl.innerHTML = `
+      <div class="chips" style="margin-bottom:10px;">
+        <span class="chip flag">다음 생리 예상 ${fmtDate(nextPeriod)}</span>
+        <span class="chip">배란 예상 ${fmtDate(ovulation)}</span>
+        <span class="chip">가임기 ${fmtDate(fertileStart)}~${fmtDate(fertileEnd)}</span>
+      </div>
+      <div class="hint">평균 주기 ${avgCycle}일 (최근 ${intervals.length}개 주기 기준) · 실제와 며칠 오차가 있을 수 있어요.</div>`;
+
+    const recentIntervals = intervals.slice(-3);
+    if(recentIntervals.some(v=>v<21 || v>35)){
+      warnEl.innerHTML = `<div class="disclaimer" style="margin-top:14px;">⚠️ 최근 주기 간격이 불규칙해 보여요 (${recentIntervals.join('일, ')}일). 반복되면 산부인과 상담을 권장해요.</div>`;
+    }
+  }
+
+  // 리스트 - 최근순(최신 시작일이 위로)
+  const pmsLogs = await listRecords('pmsLogs');
+  const sortedCycles = [...cycles].sort((a,b)=> b.startDate.localeCompare(a.startDate));
+  const rows = sortedCycles.map(c=>{
+    const rangeEnd = c.endDate || addDays(c.startDate, 6); // 종료일 미기재시 태그 매칭용 임시 7일
+    const dayPms = pmsLogs.filter(p=> p.date >= c.startDate && p.date <= rangeEnd);
+    const tags = [...new Set(dayPms.flatMap(p=>p.symptoms||[]))];
+    return `<div class="record">
+      <div class="record-top"><span class="record-date">🌙 ${fmtCycleRange(c.startDate, c.endDate)}</span></div>
+      ${tags.length? `<div class="chips">${tags.map(t=>`<span class="chip flag">${t}</span>`).join('')}</div>` : ''}
+    </div>`;
+  });
+  listEl.innerHTML = rows.join('') || '<div class="empty">아직 기록 없음</div>';
+}
+
+// ---------- Medical profile (conditions / medications / supplements) ----------
+setupSingleSelect('med-freq');
+
+document.getElementById('cond-add').onclick = async ()=>{
+  const name = document.getElementById('cond-name').value.trim();
+  if(!name){ showToast('진단명을 입력해주세요'); return; }
+  const note = document.getElementById('cond-note').value.trim();
+  const id = await saveRecord('medicalConditions', { name, note });
+  if(!id) return;
+  document.getElementById('cond-name').value=''; document.getElementById('cond-note').value='';
+  showToast('지병이 등록됐어요');
+  renderMedicalProfile();
+};
+
+document.getElementById('med-add').onclick = async ()=>{
+  const name = document.getElementById('med-name').value.trim();
+  if(!name){ showToast('약 이름을 입력해주세요'); return; }
+  const dose = document.getElementById('med-dose').value.trim();
+  const freq = getSelected('med-freq')[0] || '미기재';
+  const note = document.getElementById('med-note').value.trim();
+  const id = await saveRecord('medications', { name, dose, freq, note });
+  if(!id) return;
+  document.getElementById('med-name').value=''; document.getElementById('med-dose').value=''; document.getElementById('med-note').value='';
+  $$('#med-freq .selected').forEach(b=>b.classList.remove('selected'));
+  showToast('약물이 등록됐어요');
+  renderMedicalProfile();
+};
+
+document.getElementById('supp-add').onclick = async ()=>{
+  const name = document.getElementById('supp-name').value.trim();
+  if(!name){ showToast('영양제 이름을 입력해주세요'); return; }
+  const dose = document.getElementById('supp-dose').value.trim();
+  const id = await saveRecord('supplements', { name, dose });
+  if(!id) return;
+  document.getElementById('supp-name').value=''; document.getElementById('supp-dose').value='';
+  showToast('영양제가 등록됐어요');
+  renderMedicalProfile();
+};
+
+function renderDeletableList(containerId, items, col, renderItem){
+  const el = document.getElementById(containerId);
+  if(items.length===0){ el.innerHTML = `<div class="empty">등록된 항목 없음</div>`; return; }
+  el.innerHTML = items.map(it=>`
+    <div class="record" style="display:flex;justify-content:space-between;align-items:center;">
+      <div>${renderItem(it)}</div>
+      <button class="option-btn" data-del="${it._id}" data-col="${col}" style="flex:0 0 auto;color:#C24870;">삭제</button>
+    </div>`).join('');
+  $$(`[data-col="${col}"]`, el).forEach(btn=>{
+    btn.onclick = async ()=>{
+      await deleteRecord(col, btn.dataset.del);
+      renderMedicalProfile();
+    };
+  });
+}
+
+async function renderMedicalProfile(){
+  const [conditions, meds, supps] = await Promise.all([
+    listRecords('medicalConditions'), listRecords('medications'), listRecords('supplements')
+  ]);
+  renderDeletableList('conditionList', conditions, 'medicalConditions',
+    it=>`<b>${it.name}</b>${it.note? ` <span style="color:var(--ink-soft);font-size:12px;">· ${it.note}</span>`:''}`);
+  renderDeletableList('medList', meds, 'medications',
+    it=>`<b>${it.name}</b> <span style="color:var(--ink-soft);font-size:12px;">${it.dose||''} · ${it.freq||''}${it.note? ' · '+it.note:''}</span>`);
+  renderDeletableList('suppList', supps, 'supplements',
+    it=>`<b>${it.name}</b> <span style="color:var(--ink-soft);font-size:12px;">${it.dose||''}</span>`);
+}
+
+// ---------- Body composition & checkup ----------
+document.getElementById('body-photo').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const statusEl = document.getElementById('body-photo-status');
+  statusEl.style.display='block';
+  statusEl.textContent = '사진 분석 중…';
+
+  const base64 = await new Promise((res, rej)=>{
+    const r = new FileReader();
+    r.onload = ()=> res(r.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+
+  try{
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        model:"claude-sonnet-4-6",
+        max_tokens:500,
+        messages:[{
+          role:"user",
+          content:[
+            { type:"image", source:{ type:"base64", media_type: file.type || "image/jpeg", data: base64 } },
+            { type:"text", text:`이 인바디/체성분 결과지 사진에서 수치를 읽어서 반드시 아래 JSON 형식으로만 답해. 값을 못 찾으면 null로 둬. 다른 텍스트 없이 순수 JSON만.
+{"weight": 숫자 또는 null, "muscle": 숫자 또는 null, "fatPct": 숫자 또는 null, "fatMass": 숫자 또는 null, "bmr": 숫자 또는 null}` }
+          ]
+        }]
+      })
+    });
+    const data = await res.json();
+    const text = (data.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('');
+    const parsed = JSON.parse(text.replace(/```json|```/g,'').trim());
+    if(parsed.weight!=null) document.getElementById('bc-weight').value = parsed.weight;
+    if(parsed.muscle!=null) document.getElementById('bc-muscle').value = parsed.muscle;
+    if(parsed.fatPct!=null) document.getElementById('bc-fatpct').value = parsed.fatPct;
+    if(parsed.fatMass!=null) document.getElementById('bc-fatmass').value = parsed.fatMass;
+    if(parsed.bmr!=null) document.getElementById('bc-bmr').value = parsed.bmr;
+    statusEl.textContent = '인식 완료! 수치를 확인하고 저장해주세요 (자동인식은 오차가 있을 수 있어요)';
+  }catch(err){
+    statusEl.textContent = '인식에 실패했어요. 직접 입력해주세요.';
+  }
+});
+
+document.getElementById('bc-save').onclick = async ()=>{
+  const weight = document.getElementById('bc-weight').value;
+  const muscle = document.getElementById('bc-muscle').value;
+  const fatPct = document.getElementById('bc-fatpct').value;
+  const fatMass = document.getElementById('bc-fatmass').value;
+  const bmr = document.getElementById('bc-bmr').value;
+  if(!weight && !muscle && !fatPct){ showToast('체중, 골격근량, 체지방률 중 하나는 입력해주세요'); return; }
+  const id = await saveRecord('bodyComposition', {
+    weight: weight?parseFloat(weight):null,
+    muscle: muscle?parseFloat(muscle):null,
+    fatPct: fatPct?parseFloat(fatPct):null,
+    fatMass: fatMass?parseFloat(fatMass):null,
+    bmr: bmr?parseFloat(bmr):null
+  }, activeDate);
+  if(!id) return;
+  ['bc-weight','bc-muscle','bc-fatpct','bc-fatmass','bc-bmr'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('body-photo').value='';
+  document.getElementById('body-photo-status').style.display='none';
+  showToast('체성분 기록 저장됐어요');
+  renderBodyTrend();
+};
+
+async function renderBodyTrend(){
+  const records = (await listRecords('bodyComposition')).sort((a,b)=>a.savedAt-b.savedAt);
+  const el = document.getElementById('bcTrend');
+  if(records.length<2){ el.innerHTML = '<div class="empty">기록이 2개 이상 쌓이면 추이가 보여요</div>'; return; }
+
+  const recent = records.slice(-8);
+  const weights = recent.map(r=>r.weight).filter(v=>v!=null);
+  const fatPcts = recent.map(r=>r.fatPct).filter(v=>v!=null);
+
+  function fmtWeightDate(){ return ''; }
+
+  el.innerHTML = `
+    ${weights.length>=2? `<div class="field-label" style="margin-top:0;">체중</div>${miniBars(weights, 'kg', 'var(--sky-deep)')}`:''}
+    ${fatPcts.length>=2? `<div class="field-label">체지방률</div>${miniBars(fatPcts, '%', 'var(--pink-deep)')}`:''}
+  `;
+}
+
+document.getElementById('ck-add').onclick = async ()=>{
+  const name = document.getElementById('ck-name').value.trim();
+  const value = document.getElementById('ck-value').value.trim();
+  if(!name || !value){ showToast('항목명과 수치를 입력해주세요'); return; }
+  const id = await saveRecord('checkupResults', { name, value }, activeDate);
+  if(!id) return;
+  document.getElementById('ck-name').value=''; document.getElementById('ck-value').value='';
+  showToast('검진 결과가 저장됐어요');
+  renderCheckupList();
+};
+
+async function renderCheckupList(){
+  const items = (await listRecords('checkupResults')).sort((a,b)=>b.savedAt-a.savedAt);
+  renderDeletableList('checkupList', items, 'checkupResults',
+    it=>`<b>${it.name}</b> <span style="color:var(--ink-soft);font-size:12px;">${it.value} · ${fmtDateWithDay(it.date)}</span>`);
+}
+
+async function renderBodyPanel(){
+  await renderBodyTrend();
+  await renderCheckupList();
+}
+
+// ---------- Exercise & effect estimation ----------
+const MET_TABLE = {
+  "홈트":      { 가볍게:3.5, 보통:5.0, 격렬하게:6.5 },
+  "헬스(웨이트)": { 가볍게:3.5, 보통:5.0, 격렬하게:6.0 },
+  "수영":      { 가볍게:5.5, 보통:7.0, 격렬하게:9.5 },
+  "러닝":      { 가볍게:6.0, 보통:8.3, 격렬하게:11.0 },
+  "걷기":      { 가볍게:2.8, 보통:3.5, 격렬하게:4.5 },
+  "요가/필라테스": { 가볍게:2.5, 보통:3.0, 격렬하게:4.0 },
+  "기타":      { 가볍게:3.0, 보통:4.5, 격렬하게:6.0 }
+};
+
+setupSingleSelect('ex-type');
+setupSingleSelect('ex-intensity');
+
+document.getElementById('ex-type').addEventListener('click', ()=>{
+  const type = getSelected('ex-type')[0];
+  document.getElementById('ex-volume-fields').style.display = (type==='헬스(웨이트)') ? 'block' : 'none';
+});
+
+async function getLatestWeight(){
+  const records = (await listRecords('bodyComposition')).sort((a,b)=>b.savedAt-a.savedAt);
+  const withWeight = records.find(r=>r.weight!=null);
+  return withWeight ? withWeight.weight : null;
+}
+
+(async ()=>{
+  const w = await getLatestWeight();
+  document.getElementById('ex-bodyweight-note').textContent = w
+    ? `최근 기록된 체중(${w}kg)을 기준으로 소모 칼로리를 추정해요. 체성분 탭에서 갱신할 수 있어요.`
+    : `체중 기록이 없어서 칼로리 추정이 어려워요. 체성분 탭에서 체중을 먼저 기록해주세요.`;
+})();
+
+document.getElementById('ex-save').onclick = async ()=>{
+  const type = getSelected('ex-type')[0];
+  const intensity = getSelected('ex-intensity')[0] || '보통';
+  const duration = parseFloat(document.getElementById('ex-duration').value);
+  if(!type){ showToast('운동 종류를 선택해주세요'); return; }
+  if(!duration || duration<=0){ showToast('운동 시간을 입력해주세요'); return; }
+
+  const weight = await getLatestWeight();
+  const met = MET_TABLE[type][intensity];
+  const hours = duration/60;
+  const estKcal = weight ? Math.round(met * weight * hours) : null;
+  const estFatG = estKcal ? Math.round((estKcal/7700)*1000) : null;
+
+  let sets=null, reps=null, avgWeight=null, volume=null;
+  if(type==='헬스(웨이트)'){
+    sets = parseFloat(document.getElementById('ex-sets').value) || null;
+    reps = parseFloat(document.getElementById('ex-reps').value) || null;
+    avgWeight = parseFloat(document.getElementById('ex-weight').value) || null;
+    if(sets && reps && avgWeight) volume = sets*reps*avgWeight;
+  }
+
+  const id = await saveRecord('exerciseLogs', { type, intensity, duration, estKcal, estFatG, sets, reps, avgWeight, volume }, activeDate);
+  if(!id) return;
+
+  const resultEl = document.getElementById('ex-effect-result');
+  resultEl.innerHTML = estKcal
+    ? `<div class="chips">
+        <span class="chip flag">추정 소모 ${estKcal}kcal</span>
+        <span class="chip">지방 환산 약 ${estFatG}g</span>
+        ${volume? `<span class="chip">운동 볼륨 ${volume.toLocaleString()}kg</span>`:''}
+      </div>`
+    : `<div class="hint">체중 기록이 없어서 칼로리 추정을 할 수 없었어요. 기록은 저장됐어요.</div>`;
+
+  document.getElementById('ex-duration').value='';
+  ['ex-sets','ex-reps','ex-weight'].forEach(id=>document.getElementById(id).value='');
+  showToast('운동 기록 저장됐어요');
+  renderVolumeTrend();
+};
+
+async function renderVolumeTrend(){
+  const logs = (await listRecords('exerciseLogs')).filter(l=>l.type==='헬스(웨이트)' && l.volume).sort((a,b)=>a.savedAt-b.savedAt);
+  const el = document.getElementById('volumeTrend');
+  if(logs.length<2){ el.innerHTML = '<div class="empty">헬스 기록이 2개 이상 쌓이면 추이가 보여요</div>'; return; }
+  const volumes = logs.slice(-8).map(l=>l.volume);
+  el.innerHTML = miniBars(volumes, 'kg (세트×횟수×중량)', 'var(--lavender-deep)');
+}
+
+// ---------- Weekly exercise plan (주 단위, 하루 다중 운동, 커스텀 입력, 이전 주 복사) ----------
+const PLAN_DAY_LABELS = ['월','화','수','목','금','토','일'];
+const PLAN_PRESETS = ['홈트','헬스(웨이트)','수영','러닝','걷기','요가/필라테스'];
+const planGrid = document.getElementById('weeklyPlanGrid');
+
+function mondayOf(dateStr){
+  const d = new Date(dateStr);
+  const dow = d.getDay(); // 0=일
+  const diff = dow===0 ? -6 : 1-dow;
+  d.setDate(d.getDate()+diff);
+  return d.toISOString().slice(0,10);
+}
+
+let planWeekStart = mondayOf(todayStr());
+let planDraft = { 월:[], 화:[], 수:[], 목:[], 금:[], 토:[], 일:[] };
+
+function planWeekLabel(weekStart){
+  const s = new Date(weekStart);
+  const e = new Date(weekStart); e.setDate(e.getDate()+6);
+  return `${s.getMonth()+1}/${s.getDate()}(월)~${e.getMonth()+1}/${e.getDate()}(일)`;
+}
+
+function renderPlanGrid(){
+  planGrid.innerHTML = '';
+  PLAN_DAY_LABELS.forEach((day, i)=>{
+    const dayDate = addDays(planWeekStart, i);
+    const d = new Date(dayDate);
+    const selected = planDraft[day] || [];
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #F1EDFA;';
+    wrap.innerHTML = `
+      <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:6px;">${day} <span style="font-weight:400;color:var(--ink-soft);font-size:11px;">${d.getMonth()+1}/${d.getDate()}</span></div>
+      <div class="option-grid plan-preset-row" data-day="${day}">
+        ${PLAN_PRESETS.map(p=>`<div class="option-btn ${selected.includes(p)?'selected':''}" data-v="${p}">${p}</div>`).join('')}
+      </div>
+      <div class="chips plan-custom-chips" data-day="${day}" style="margin-top:6px;">
+        ${selected.filter(v=>!PLAN_PRESETS.includes(v)).map(v=>`<span class="chip flag" data-custom="${v}">${v} ×</span>`).join('')}
+      </div>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <input type="text" class="plan-custom-input" data-day="${day}" placeholder="다른 운동 직접 입력" style="flex:1;font-size:12.5px;padding:8px 12px;">
+        <button class="btn-ghost plan-custom-add" data-day="${day}" style="flex:0 0 auto;">추가</button>
+      </div>`;
+    planGrid.appendChild(wrap);
+  });
+}
+
+planGrid.addEventListener('click', (e)=>{
+  const presetBtn = e.target.closest('.plan-preset-row .option-btn');
+  if(presetBtn){
+    const day = presetBtn.closest('.plan-preset-row').dataset.day;
+    const v = presetBtn.dataset.v;
+    const arr = planDraft[day];
+    if(arr.includes(v)) planDraft[day] = arr.filter(x=>x!==v);
+    else arr.push(v);
+    renderPlanGrid();
+    return;
+  }
+  const customChip = e.target.closest('.plan-custom-chips .chip');
+  if(customChip){
+    const day = customChip.closest('.plan-custom-chips').dataset.day;
+    const v = customChip.dataset.custom;
+    planDraft[day] = planDraft[day].filter(x=>x!==v);
+    renderPlanGrid();
+    return;
+  }
+  const addBtn = e.target.closest('.plan-custom-add');
+  if(addBtn){
+    const day = addBtn.dataset.day;
+    const input = planGrid.querySelector(`.plan-custom-input[data-day="${day}"]`);
+    const v = input.value.trim();
+    if(v && !planDraft[day].includes(v)) planDraft[day].push(v);
+    renderPlanGrid();
+  }
+});
+
+document.getElementById('planWeekPrev').onclick = async ()=>{
+  planWeekStart = addDays(planWeekStart, -7);
+  await loadWeeklyPlan();
+};
+document.getElementById('planWeekNext').onclick = async ()=>{
+  planWeekStart = addDays(planWeekStart, 7);
+  await loadWeeklyPlan();
+};
+
+document.getElementById('plan-copy-prev').onclick = async ()=>{
+  const prevWeekStart = addDays(planWeekStart, -7);
+  const plans = await listRecords('weeklyExercisePlan');
+  const prev = plans.find(p=>p.weekStart===prevWeekStart);
+  if(!prev){ showToast('지난 주 계획이 없어요'); return; }
+  planDraft = JSON.parse(JSON.stringify(prev.plan));
+  renderPlanGrid();
+  showToast('지난 주 계획을 불러왔어요. 저장을 눌러야 반영돼요');
+};
+
+document.getElementById('plan-save').onclick = async ()=>{
+  const id = await saveRecord('weeklyExercisePlan', { weekStart: planWeekStart, plan: planDraft }, planWeekStart);
+  if(!id) return;
+  showToast('이번 주 운동 계획이 저장됐어요');
+};
+
+async function loadWeeklyPlan(){
+  document.getElementById('planWeekLabel').textContent = planWeekLabel(planWeekStart);
+  const plans = await listRecords('weeklyExercisePlan');
+  const existing = plans.find(p=>p.weekStart===planWeekStart);
+  planDraft = existing ? JSON.parse(JSON.stringify(existing.plan)) : { 월:[], 화:[], 수:[], 목:[], 금:[], 토:[], 일:[] };
+  renderPlanGrid();
+}
+
+async function renderExercisePanel(){
+  await renderVolumeTrend();
+  await loadWeeklyPlan();
+}
+
+// ---------- Diet: today's macro target + meal logging ----------
+setupSingleSelect('meal-type');
+
+const MACRO_RATIOS = {
+  rest:     { label:'휴식일', carb:0.45, protein:0.25, fat:0.30, activityFactor:1.2 },
+  cardio:   { label:'유산소 운동일', carb:0.50, protein:0.25, fat:0.25, activityFactor:1.45 },
+  strength: { label:'근력 운동일', carb:0.40, protein:0.35, fat:0.25, activityFactor:1.55 }
+};
+const CARDIO_TYPES = ['수영','러닝','걷기','요가/필라테스'];
+
+async function getTodaysExercisePlan(){
+  const ws = mondayOf(activeDate);
+  const plans = await listRecords('weeklyExercisePlan');
+  const plan = plans.find(p=>p.weekStart===ws);
+  if(!plan) return [];
+  const dow = new Date(activeDate).getDay(); // 0=일
+  const dayLabel = PLAN_DAY_LABELS[(dow+6)%7]; // 월=0 매핑
+  return plan.plan[dayLabel] || [];
+}
+
+async function renderDietTarget(){
+  const el = document.getElementById('dietTarget');
+  const todaysExercise = await getTodaysExercisePlan();
+  const weight = await getLatestWeight();
+  const records = (await listRecords('bodyComposition')).sort((a,b)=>b.savedAt-a.savedAt);
+  const bmrRecord = records.find(r=>r.bmr!=null);
+  const bmr = bmrRecord ? bmrRecord.bmr : null;
+
+  let dayType = 'rest';
+  if(todaysExercise.some(e=>e==='헬스(웨이트)')) dayType = 'strength';
+  else if(todaysExercise.some(e=>CARDIO_TYPES.includes(e) || e==='홈트')) dayType = 'cardio';
+
+  const ratio = MACRO_RATIOS[dayType];
+
+  if(!bmr){
+    el.innerHTML = `
+      <div class="chips" style="margin-bottom:8px;">
+        <span class="chip flag">${ratio.label}</span>
+        ${todaysExercise.length? todaysExercise.map(e=>`<span class="chip">${e}</span>`).join(''):'<span class="chip">계획된 운동 없음</span>'}
+      </div>
+      <div class="hint">체성분 탭에서 기초대사량을 입력하면 목표 칼로리·영양소(g)까지 계산해줘요. 지금은 오늘 컨디션(${ratio.label})에 맞는 탄단지 비율만 참고하세요: 탄수 ${Math.round(ratio.carb*100)}% · 단백질 ${Math.round(ratio.protein*100)}% · 지방 ${Math.round(ratio.fat*100)}%</div>`;
+    return;
+  }
+
+  const targetKcal = Math.round(bmr * ratio.activityFactor);
+  const carbG = Math.round(targetKcal*ratio.carb/4);
+  const proteinG = Math.round(targetKcal*ratio.protein/4);
+  const fatG = Math.round(targetKcal*ratio.fat/9);
+
+  el.innerHTML = `
+    <div class="chips" style="margin-bottom:10px;">
+      <span class="chip flag">${ratio.label}</span>
+      ${todaysExercise.length? todaysExercise.map(e=>`<span class="chip">${e}</span>`).join(''):'<span class="chip">계획된 운동 없음</span>'}
+    </div>
+    <div class="chips">
+      <span class="chip">목표 ${targetKcal}kcal</span>
+      <span class="chip">탄수 ${carbG}g</span>
+      <span class="chip">단백질 ${proteinG}g</span>
+      <span class="chip">지방 ${fatG}g</span>
+    </div>`;
+  window._dietTargetCache = { targetKcal, carbG, proteinG, fatG };
+}
+
+document.getElementById('meal-photo').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const statusEl = document.getElementById('meal-photo-status');
+  statusEl.style.display='block';
+  statusEl.textContent = '사진 분석 중…';
+
+  const base64 = await new Promise((res, rej)=>{
+    const r = new FileReader();
+    r.onload = ()=> res(r.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+
+  try{
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        model:"claude-sonnet-4-6",
+        max_tokens:500,
+        messages:[{
+          role:"user",
+          content:[
+            { type:"image", source:{ type:"base64", media_type: file.type || "image/jpeg", data: base64 } },
+            { type:"text", text:`이 음식 사진을 분석해서 반드시 아래 JSON 형식으로만 답해. 다른 텍스트 없이 순수 JSON만.
+{"name":"음식 이름(한국어)", "kcal": 숫자, "carb": 탄수화물 그램 숫자, "protein": 단백질 그램 숫자, "fat": 지방 그램 숫자}` }
+          ]
+        }]
+      })
+    });
+    const data = await res.json();
+    const text = (data.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('');
+    const parsed = JSON.parse(text.replace(/```json|```/g,'').trim());
+    document.getElementById('meal-name').value = parsed.name || '';
+    document.getElementById('meal-kcal').value = parsed.kcal ?? '';
+    document.getElementById('meal-carb').value = parsed.carb ?? '';
+    document.getElementById('meal-protein').value = parsed.protein ?? '';
+    document.getElementById('meal-fat').value = parsed.fat ?? '';
+    statusEl.textContent = '인식 완료! 실제와 다를 수 있어요, 확인 후 저장해주세요.';
+  }catch(err){
+    statusEl.textContent = '인식에 실패했어요. 직접 입력해주세요.';
+  }
+});
+
+document.getElementById('meal-save').onclick = async ()=>{
+  const mealType = getSelected('meal-type')[0];
+  const name = document.getElementById('meal-name').value.trim();
+  if(!mealType){ showToast('끼니를 선택해주세요'); return; }
+  if(!name){ showToast('음식 이름을 입력해주세요'); return; }
+  const record = {
+    mealType, name,
+    kcal: parseFloat(document.getElementById('meal-kcal').value) || 0,
+    carb: parseFloat(document.getElementById('meal-carb').value) || 0,
+    protein: parseFloat(document.getElementById('meal-protein').value) || 0,
+    fat: parseFloat(document.getElementById('meal-fat').value) || 0
+  };
+  const id = await saveRecord('mealLogs', record, activeDate);
+  if(!id) return;
+  ['meal-name','meal-kcal','meal-carb','meal-protein','meal-fat'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('meal-photo').value='';
+  document.getElementById('meal-photo-status').style.display='none';
+  $$('#meal-type .selected').forEach(b=>b.classList.remove('selected'));
+  showToast('식사 기록 저장됐어요');
+  renderDietSummary();
+};
+
+async function renderDietSummary(){
+  const el = document.getElementById('dietSummary');
+  const all = await listRecords('mealLogs');
+  const todays = all.filter(m=>m.date===activeDate);
+  if(todays.length===0){ el.innerHTML = '<div class="empty">오늘 기록된 식사가 없어요</div>'; return; }
+
+  const totals = todays.reduce((acc,m)=>({
+    kcal: acc.kcal+(m.kcal||0), carb: acc.carb+(m.carb||0),
+    protein: acc.protein+(m.protein||0), fat: acc.fat+(m.fat||0)
+  }), {kcal:0,carb:0,protein:0,fat:0});
+
+  const target = window._dietTargetCache;
+
+  function bar(label, value, max, color){
+    const pct = max ? Math.min(100, Math.round(value/max*100)) : null;
+    return `<div style="margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink-soft);margin-bottom:3px;">
+        <span>${label}</span><span>${Math.round(value)}${max? ` / ${Math.round(max)}`:''}</span>
+      </div>
+      <div style="background:#F1EDFA;border-radius:999px;height:8px;overflow:hidden;">
+        <div style="width:${pct!=null?pct:Math.min(100,value/2)}%;background:${color};height:100%;"></div>
+      </div>
+    </div>`;
+  }
+
+  el.innerHTML = `
+    <div class="chips" style="margin-bottom:10px;">
+      ${todays.map(m=>`<span class="chip">${m.mealType} ${m.name}</span>`).join('')}
+    </div>
+    ${bar('칼로리 (kcal)', totals.kcal, target?target.targetKcal:null, 'var(--pink-deep)')}
+    ${bar('탄수화물 (g)', totals.carb, target?target.carbG:null, 'var(--sky-deep)')}
+    ${bar('단백질 (g)', totals.protein, target?target.proteinG:null, 'var(--lavender-deep)')}
+    ${bar('지방 (g)', totals.fat, target?target.fatG:null, 'var(--mint-deep)')}
+  `;
+}
+
+async function renderDietPanel(){
+  await renderDietTarget();
+  await renderDietSummary();
+}
+
+// ---------- Conversational check-in ----------
+let conversation = [];
+let turnCount = 0;
+
+function addBubble(role, text){
+  const log = document.getElementById('chatlog');
+  const div = document.createElement('div');
+  div.className = 'bubble ' + (role==='assistant' ? 'ai':'user');
+  div.textContent = text;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+async function callClaude(messages, systemPrompt){
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1000, system:systemPrompt, messages })
+  });
+  const data = await res.json();
+  return (data.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('\n');
+}
+
+function initChat(){
+  document.getElementById('chatlog').innerHTML = '';
+  addBubble('assistant', '오늘 컨디션 어때? 편하게 얘기해줘 🌿');
+  conversation = []; turnCount = 0;
+  document.getElementById('endBtn').style.display='none';
+}
+initChat();
+
+document.getElementById('sendBtn').onclick = sendChat;
+document.getElementById('chatInput').addEventListener('keydown', e=>{
+  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendChat(); }
+});
+
+async function sendChat(){
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if(!text) return;
+  addBubble('user', text);
+  conversation.push({role:'user', text});
+  input.value=''; turnCount++;
+
+  document.getElementById('loadingRow').innerHTML = '<div class="loading">듣고 있어요…</div>';
+  document.getElementById('sendBtn').disabled = true;
+
+  const sysPrompt = `너는 사용자의 하루 컨디션을 편안하게 들어주는 대화 상대야. 절대 의학적 진단을 내리지 마.
+- 야근 여부, 식사, 운동, 수면, 스트레스 요인, 몸 상태가 어느 정도 파악됐으면 더 캐묻지 말고 짧은 마무리 인사만 해.
+- 불명확한 부분이 있으면 딱 1개만 짧고 자연스럽게 되물어. 여러 질문 금지.
+- 지금까지 대화 턴 수: ${turnCount}. 3턴 넘었으면 반드시 마무리 인사로 끝내.`;
+
+  const reply = await callClaude(conversation.map(c=>({role:c.role, content:c.text})), sysPrompt);
+  document.getElementById('loadingRow').innerHTML='';
+  document.getElementById('sendBtn').disabled = false;
+
+  addBubble('assistant', reply);
+  conversation.push({role:'assistant', text:reply});
+  if(turnCount>=2) document.getElementById('endBtn').style.display='block';
+}
+
+document.getElementById('endBtn').onclick = async ()=>{
+  const btn = document.getElementById('endBtn');
+  btn.disabled = true; btn.textContent = '요약 중…';
+
+  const transcript = conversation.map(c=>(c.role==='user'?'사용자: ':'AI: ')+c.text).join('\n');
+  const analysisPrompt = `아래는 사용자의 오늘 컨디션 대화 기록이야. 분석해서 반드시 아래 JSON 형식으로만 답해. 언급 안 된 항목은 빈 배열/빈 문자열/null로 둬. 다른 텍스트 없이 순수 JSON만.
+{
+  "summaryKeywords": ["짧은 키워드"],
+  "stressScore": 1~10 정수,
+  "overtimeWork": true/false,
+  "exercised": true/false,
+  "mealNote": "식사 관련 요약(없으면 빈 문자열)",
+  "sleepNote": "수면 관련 요약(없으면 빈 문자열)",
+  "flaggedSymptoms": ["언급된 신체 증상들"],
+  "oneLineSummary": "한 문장 요약",
+  "painDetected": { "regions": ["언급된 부위, 없으면 빈 배열"], "quality": ["콕콕 쑤심/담 온듯 뻐근함/눌렀을때 아픔/저림/화끈거림/조이는 느낌/욱신거림 중 해당하는 것"], "intensity": 1~10 정수 또는 null } 또는 null (통증 언급 없으면 null),
+  "stressSignalsDetected": ["두근거림/가슴답답, 현기증/어지럼, 손발 저림, 식은땀, 소화불량/속쓰림, 두통, 집중력 저하, 불안감, 목/어깨 긴장, 짜증/예민함, 무기력함, 잠들기 어려움 중 언급된 것만"],
+  "pmsSymptomsDetected": ["복통, 두통, 유방 압통, 부종, 감정기복, 피로감, 여드름, 식욕변화 중 생리/PMS 맥락으로 언급된 것만"]
+}
+대화 기록:
+${transcript}`;
+
+  const raw = await callClaude([{role:'user', content:analysisPrompt}], "너는 정확한 JSON만 출력하는 분석기야.");
+  let parsed;
+  try{ parsed = JSON.parse(raw.replace(/```json|```/g,'').trim()); }
+  catch(e){ parsed = {summaryKeywords:['요약 실패'], stressScore:5, overtimeWork:false, exercised:false, mealNote:'', sleepNote:'', flaggedSymptoms:[], oneLineSummary:raw.slice(0,50), painDetected:null, stressSignalsDetected:[], pmsSymptomsDetected:[]}; }
+
+  const linkedModules = [];
+
+  // 대화에서 통증이 감지되면 통증 기록에도 자동 반영
+  if(parsed.painDetected && parsed.painDetected.regions && parsed.painDetected.regions.length){
+    const pid = await saveRecord('painRecords', {
+      type:'pain',
+      regions: parsed.painDetected.regions,
+      painType: '미선택(체크인 자동기록)',
+      quality: parsed.painDetected.quality || [],
+      intensity: parsed.painDetected.intensity || 5,
+      source: 'checkin-auto'
+    }, activeDate);
+    if(pid) linkedModules.push('🩹 통증 기록');
+  }
+
+  // 스트레스 신호로 매칭되는 게 있으면 스트레스 신호 탭에도 자동 반영
+  if(parsed.stressSignalsDetected && parsed.stressSignalsDetected.length){
+    const sid = await saveRecord('stressSignals', {
+      type:'stress',
+      symptoms: parsed.stressSignalsDetected,
+      timing: '미기재',
+      duration: '미기재',
+      note: '오늘 체크인 대화에서 자동 연동됨',
+      source: 'checkin-auto'
+    }, activeDate);
+    if(sid) linkedModules.push('🧠 스트레스 신호');
+  }
+
+  // PMS/생리 증상 언급이 있으면 생리주기 탭에도 자동 반영
+  if(parsed.pmsSymptomsDetected && parsed.pmsSymptomsDetected.length){
+    const mid = await saveRecord('pmsLogs', {
+      symptoms: parsed.pmsSymptomsDetected,
+      bbt: null,
+      source: 'checkin-auto'
+    }, activeDate);
+    if(mid) linkedModules.push('🌙 생리주기');
+  }
+
+  const checkinId = await saveRecord('dailyCheckins', { type:'checkin', rawConversation:conversation, linkedModules, ...parsed }, activeDate);
+  btn.disabled = false; btn.textContent = '대화 마치고 요약 저장';
+
+  if(!checkinId){
+    // saveRecord가 이미 실패 토스트를 띄웠으니 대화 내용은 유지하고 재시도할 수 있게 둔다
+    return;
+  }
+  showToast(linkedModules.length ? `저장 완료! ${linkedModules.join(', ')}에도 자동 반영됐어요` : '오늘의 기록이 저장됐어요 🌸');
+  initChat();
+};
+
+// ---------- History ----------
+function stressColor(score){
+  if(score<=3) return {bg:'#D8F6EC', fg:'#2E8A6E'};
+  if(score<=6) return {bg:'#DDEEFF', fg:'#5B9BD5'};
+  return {bg:'#FFE3EE', fg:'#C24870'};
+}
+
+async function renderHistory(){
+  const list = document.getElementById('historyList');
+  list.innerHTML = '<div class="loading">불러오는 중…</div>';
+  const [checkins, stresses, pains, cycles, pmsLogs, bodyComps, checkups, exercises, meals] = await Promise.all([
+    listRecords('dailyCheckins'), listRecords('stressSignals'), listRecords('painRecords'),
+    listRecords('periodCycles'), listRecords('pmsLogs'), listRecords('bodyComposition'),
+    listRecords('checkupResults'), listRecords('exerciseLogs'), listRecords('mealLogs')
+  ]);
+  const all = [...checkins, ...stresses, ...pains, ...cycles, ...pmsLogs, ...bodyComps, ...checkups, ...exercises, ...meals]
+    .sort((a,b)=>(b.savedAt||0)-(a.savedAt||0));
+  if(all.length===0){ list.innerHTML = '<div class="empty">아직 기록이 없어요</div>'; return; }
+
+  const autoBadge = `<span class="chip" style="background:#F1EDFA;color:var(--ink-soft);">🔗 체크인에서 자동 연동</span>`;
+
+  list.innerHTML='';
+  all.forEach((rec, idx)=>{
+    const div = document.createElement('div');
+    div.className='record';
+    const dateLabel = fmtDateWithDay(rec.date);
+
+    if(rec.type==='checkin'){
+      const sc = stressColor(rec.stressScore||5);
+      div.innerHTML = `
+        <div class="record-top">
+          <span class="record-date">💬 ${dateLabel}</span>
+          <span class="stress-badge" style="background:${sc.bg};color:${sc.fg};">스트레스 ${rec.stressScore}/10</span>
+        </div>
+        <div class="chips">
+          ${(rec.summaryKeywords||[]).map(k=>`<span class="chip">${k}</span>`).join('')}
+          ${rec.overtimeWork?`<span class="chip flag">야근</span>`:''}
+          ${(rec.flaggedSymptoms||[]).map(s=>`<span class="chip flag">${s}</span>`).join('')}
+          ${(rec.linkedModules||[]).length? `<span class="chip" style="background:#F1EDFA;color:var(--lavender-deep);">🔗 ${rec.linkedModules.join(' · ')} 자동 연동</span>`:''}
+        </div>
+        <div class="raw-toggle" data-idx="${idx}">원문 보기 ▾</div>
+        <div class="raw-content" id="raw-${idx}">
+          ${rec.mealNote?`🍽 ${rec.mealNote}<br>`:''}${rec.sleepNote?`😴 ${rec.sleepNote}<br>`:''}
+          <br>${(rec.rawConversation||[]).map(c=>`<b>${c.role==='user'?'나':'AI'}:</b> ${c.text}`).join('<br>')}
+        </div>`;
+    } else if(rec.type==='stress'){
+      div.innerHTML = `
+        <div class="record-top"><span class="record-date">🧠 ${dateLabel} · ${rec.timing}</span></div>
+        <div class="chips">
+          ${(rec.symptoms||[]).map(s=>`<span class="chip flag">${s}</span>`).join('')}
+          <span class="chip">${rec.duration}</span>
+          ${rec.source==='checkin-auto'? autoBadge:''}
+        </div>
+        ${rec.note?`<div class="raw-content show" style="margin-top:8px;">${rec.note}</div>`:''}`;
+    } else if(rec.type==='pain'){
+      div.innerHTML = `
+        <div class="record-top">
+          <span class="record-date">🩹 ${dateLabel}</span>
+          <span class="stress-badge" style="background:var(--pink);color:#C24870;">강도 ${rec.intensity}/10</span>
+        </div>
+        <div class="chips">
+          ${(rec.regions||[]).map(r=>`<span class="chip">${(r+'').split('>')[1]||r}</span>`).join('')}
+          <span class="chip flag">${rec.painType}</span>
+          ${(rec.quality||[]).map(q=>`<span class="chip">${q}</span>`).join('')}
+          ${rec.source==='checkin-auto'? autoBadge:''}
+        </div>`;
+    } else if(rec.startDate){ // periodCycles
+      div.innerHTML = `
+        <div class="record-top"><span class="record-date">🌙 ${fmtCycleRange(rec.startDate, rec.endDate)}</span></div>`;
+    } else if(rec.symptoms && rec.bbt!==undefined){ // pmsLogs
+      div.innerHTML = `
+        <div class="record-top"><span class="record-date">🌙 ${dateLabel} · PMS/생리 증상</span></div>
+        <div class="chips">
+          ${(rec.symptoms||[]).map(s=>`<span class="chip flag">${s}</span>`).join('')}
+          ${rec.bbt? `<span class="chip">체온 ${rec.bbt}°C</span>`:''}
+          ${rec.source==='checkin-auto'? autoBadge:''}
+        </div>`;
+    } else if(rec.weight!==undefined && rec.type===undefined){ // bodyComposition
+      div.innerHTML = `
+        <div class="record-top"><span class="record-date">📊 ${dateLabel} · 체성분</span></div>
+        <div class="chips">
+          ${rec.weight!=null?`<span class="chip">체중 ${rec.weight}kg</span>`:''}
+          ${rec.muscle!=null?`<span class="chip">근육 ${rec.muscle}kg</span>`:''}
+          ${rec.fatPct!=null?`<span class="chip">체지방 ${rec.fatPct}%</span>`:''}
+        </div>`;
+    } else if(rec.name!==undefined && rec.value!==undefined){ // checkupResults
+      div.innerHTML = `
+        <div class="record-top"><span class="record-date">🏥 ${dateLabel} · 검진결과</span></div>
+        <div class="chips"><span class="chip flag">${rec.name}: ${rec.value}</span></div>`;
+    } else if(rec.estKcal!==undefined){ // exerciseLogs
+      div.innerHTML = `
+        <div class="record-top"><span class="record-date">🏋️ ${dateLabel} · ${rec.type}</span></div>
+        <div class="chips">
+          <span class="chip">${rec.duration}분 · ${rec.intensity}</span>
+          ${rec.estKcal? `<span class="chip flag">${rec.estKcal}kcal</span>`:''}
+          ${rec.volume? `<span class="chip">볼륨 ${rec.volume}kg</span>`:''}
+        </div>`;
+    } else if(rec.mealType!==undefined){ // mealLogs
+      div.innerHTML = `
+        <div class="record-top"><span class="record-date">🍽 ${dateLabel} · ${rec.mealType}</span></div>
+        <div class="chips">
+          <span class="chip flag">${rec.name}</span>
+          <span class="chip">${rec.kcal}kcal</span>
+        </div>`;
+    } else {
+      return; // 알 수 없는 타입은 건너뜀
+    }
+    list.appendChild(div);
+  });
+
+  $$('.raw-toggle').forEach(t=>{
+    t.onclick = ()=>{
+      const target = document.getElementById('raw-'+t.dataset.idx);
+      target.classList.toggle('show');
+      t.textContent = target.classList.contains('show') ? '원문 접기 ▴' : '원문 보기 ▾';
+    };
+  });
+}
+</script>
+</body>
+</html>
