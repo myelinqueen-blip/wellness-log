@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wellness Log · 데일리 체크인</title>
+<title>웰니스로그 · 데일리 체크인</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
     --lavender:#E9E1FF; --lavender-deep:#8C7AE6;
@@ -22,17 +22,24 @@
     font-family:'Pretendard',sans-serif; color:var(--ink);
     -webkit-font-smoothing:antialiased; padding-bottom:40px;
   }
-  header{padding:24px 20px 4px; text-align:center;}
-  header h1{font-family:'Pretendard',sans-serif; font-weight:700; font-size:22px; margin:0 0 4px; color:var(--lavender-deep);}
-  header p{margin:0 0 10px; font-size:13px; color:var(--ink-soft);}
+  header{padding:10px 16px; max-width:480px; margin:0 auto;}
+  .brand-row{display:flex; align-items:center; justify-content:space-between; gap:8px;}
+  .brand-mark{font-family:'Pretendard',sans-serif; font-weight:800; font-size:14px; color:var(--lavender-deep); opacity:0.85;}
   .auth-row{
-    display:flex; justify-content:center; align-items:center; gap:8px;
-    font-size:12px; color:var(--ink-soft); margin-bottom:6px;
+    display:flex; align-items:center; gap:6px;
+    font-size:11px; color:var(--ink-soft);
   }
   .auth-btn{
     background:white; border:1px solid #E4DEF7; border-radius:999px;
-    padding:6px 14px; font-size:12px; font-weight:600; color:var(--lavender-deep);
+    padding:4px 10px; font-size:11px; font-weight:600; color:var(--lavender-deep);
   }
+  .toolbar-icons{display:flex; gap:4px;}
+  .icon-btn{
+    background:none; border:none; padding:3px 5px;
+    border-radius:8px; opacity:0.55; line-height:1; color:var(--lavender-deep);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .icon-btn:active{opacity:1; background:#F1EDFA;}
   .container{max-width:480px; margin:0 auto; padding:0 16px;}
   .tabbar-wrap{margin-bottom:16px;}
   .tabbar{display:flex; gap:8px; overflow-x:auto; padding-bottom:2px; scrollbar-width:none;}
@@ -90,6 +97,7 @@
   .option-grid{display:flex; flex-wrap:wrap; gap:8px;}
   .option-btn{padding:8px 14px; border-radius:12px; background:#F5F2FF; border:1.5px solid transparent; font-size:13px; color:var(--ink); font-weight:500;}
   .option-btn.selected{background:var(--sky); border-color:var(--sky-deep); color:var(--sky-deep); font-weight:700;}
+  .compact-chips .option-btn{padding:5px 10px; font-size:11.5px;}
   textarea{width:100%; border:1px solid #E4DEF7; border-radius:14px; padding:11px 14px; font-size:14px; font-family:inherit; resize:vertical; min-height:56px; outline:none;}
 
   .region-cat{border:1px solid #EFEAFB; border-radius:16px; margin-bottom:8px; overflow:hidden;}
@@ -111,9 +119,61 @@
   .hint{font-size:11px; color:var(--ink-soft); margin-top:6px; margin-bottom:8px; line-height:1.5;}
   .empty{text-align:center; color:var(--ink-soft); font-size:13px; padding:30px 0;}
   .disclaimer{background:var(--pink); border-radius:16px; padding:12px 14px; font-size:12px; color:#B04A6D; line-height:1.5;}
-  input[type="date"], input[type="text"], input[type="number"]{
+  .cal-day{
+    position:relative; aspect-ratio:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    font-size:13px; border-radius:10px; cursor:pointer; color:var(--ink);
+  }
+  .cal-day.in-period{ background:linear-gradient(180deg, transparent 55%, var(--pink) 55%); font-weight:700; }
+  .cal-day.is-today{ box-shadow:inset 0 0 0 1.5px var(--lavender-deep); }
+  .cal-day.is-selected{ background:var(--lavender-deep) !important; color:white; }
+  .cal-dot{ width:4px; height:4px; border-radius:50%; background:var(--sky-deep); margin-top:1px; }
+  .pred-row{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:8px 2px; border-bottom:1px solid #F1EDFA; font-size:13px;
+  }
+  .pred-row:last-of-type{ border-bottom:none; }
+  .pred-label{ color:var(--ink-soft); font-weight:600; }
+  .pred-value{ color:var(--lavender-deep); font-weight:700; }
+  .med-cal-day-cell{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:6px 0; border-radius:10px; cursor:pointer; color:var(--ink);
+  }
+  .med-cal-day-cell.is-selected{ background:var(--lavender-deep); color:white; }
+  .adherence-table{ border-collapse:collapse; width:100%; font-size:11px; }
+  .adherence-table th{ font-weight:600; color:var(--ink-soft); padding:4px 3px; text-align:center; min-width:34px; }
+  .adherence-table td{ padding:3px; text-align:center; }
+  .adherence-table td.row-label{
+    position:sticky; left:0; background:white; text-align:left; padding:4px 10px 4px 2px;
+    font-weight:700; white-space:nowrap; font-size:12px;
+  }
+  .adherence-table tr.med-row{ border-bottom:1px dotted #E4DEF7; }
+  .adherence-table tr.section-row td{
+    font-weight:800; color:var(--ink); text-align:left; padding:10px 4px 6px;
+    border-top:2px solid var(--lavender-deep); font-size:12px;
+  }
+  .adherence-table tr.section-row:first-child td{ border-top:none; }
+  .adh-cell{ width:28px; height:28px; border-radius:7px; border:1.6px solid; }
+  .med-week-block{ margin-bottom:16px; }
+  .med-week-name{ font-size:13px; font-weight:700; margin-bottom:6px; }
+  .med-week-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+  .med-week-cell{ display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .med-week-daylabel{ font-size:10px; color:var(--ink-soft); }
+  .med-week-slot{
+    width:100%; min-height:34px; border-radius:8px; font-size:10px; font-weight:700;
+    border:1.6px solid; padding:2px;
+  }
+  input[type="date"], input[type="text"], input[type="number"], input[type="time"]{
     width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;
-    font-size:14px;font-family:inherit;outline:none;
+    font-size:14px;font-family:inherit;outline:none;color:var(--ink);background:white;
+  }
+  input[type="file"]{
+    width:100%; border:1.5px dashed #D8CEF0; border-radius:14px; padding:9px 12px;
+    font-size:12.5px; font-family:inherit; color:var(--ink-soft); background:#FBFAFF;
+  }
+  input[type="file"]::file-selector-button,
+  input[type="file"]::-webkit-file-upload-button{
+    background:var(--lavender-deep); color:white; border:none; border-radius:10px;
+    padding:7px 14px; font-size:12px; font-weight:700; margin-right:10px; cursor:pointer;
   }
   .date-nav{
     position:sticky; top:0; z-index:20;
@@ -132,7 +192,7 @@
     display:flex; align-items:baseline; gap:8px; padding:0 6px; flex:0 0 auto;
   }
   .date-nav-day{
-    font-family:'Pretendard',sans-serif; font-weight:700; font-size:18px; color:var(--lavender-deep); line-height:1.3;
+    font-family:'Pretendard',sans-serif; font-weight:800; font-size:18px; color:var(--lavender-deep); line-height:1.3;
   }
   .date-nav-weekday{font-size:12px; color:#B07FA8; font-weight:600;}
   .date-nav-spacer{flex:1;}
@@ -152,35 +212,49 @@
 <body>
 
 <header>
-  <h1>Wellness Log</h1>
-  <p>오늘의 컨디션, 편하게 이야기하듯 남겨보세요</p>
-  <div class="auth-row" id="authRow">확인 중…</div>
+  <div class="brand-row">
+    <span class="brand-mark">💪 웰니스로그</span>
+    <div class="toolbar-icons">
+      <button class="icon-btn" id="backupBtn" title="저장 확인">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>
+      </button>
+      <button class="icon-btn" id="exportBtn" title="내보내기">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></svg>
+      </button>
+      <button class="icon-btn" id="restoreBtn" title="복원">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+      </button>
+      <input type="file" id="restoreFileInput" accept="application/json" style="display:none;">
+    </div>
+    <span class="auth-row" id="authRow"></span>
+  </div>
 </header>
 
 <div class="date-nav">
   <div class="date-nav-spacer"></div>
   <button class="date-nav-arrow" id="dateNavPrev">‹</button>
   <div class="date-nav-center">
-    <span class="date-nav-day" id="dateNavDay">8/17(월)</span>
+    <span class="date-nav-day" id="dateNavDay">8월 17일</span>
+    <span class="date-nav-weekday" id="dateNavWeekday">월요일</span>
   </div>
   <button class="date-nav-arrow" id="dateNavNext">›</button>
   <div class="date-nav-spacer" style="display:flex; justify-content:flex-end;">
-    <button class="date-nav-today-btn hidden" id="dateNavTodayBtn">오늘로</button>
+    <button class="date-nav-today-btn hidden" id="dateNavTodayBtn">오늘</button>
   </div>
 </div>
 
 <div class="container">
   <div class="tabbar-wrap">
     <div class="tabbar" id="tabbar">
-      <div class="tab active" data-tab="checkin">💬 오늘 체크인</div>
-      <div class="tab" data-tab="stress">🧠 스트레스 신호</div>
-      <div class="tab" data-tab="pain">🩹 통증 기록</div>
-      <div class="tab" data-tab="cycle">🌙 생리주기</div>
-      <div class="tab" data-tab="medical">💊 지병·약물</div>
-      <div class="tab" data-tab="body">📊 체성분·검진</div>
+      <div class="tab active" data-tab="checkin">💬 Check-in</div>
+      <div class="tab" data-tab="stress">🧠 Emotion</div>
+      <div class="tab" data-tab="pain">🩹 Pain</div>
+      <div class="tab" data-tab="cycle">🌙 Menstruation</div>
+      <div class="tab" data-tab="medical">💊 Medicines</div>
+      <div class="tab" data-tab="body">📊 InBody</div>
       <div class="tab" data-tab="exercise">🏋️ 운동</div>
       <div class="tab" data-tab="diet">🍽 식단</div>
-      <div class="tab" data-tab="history">📖 기록 보기</div>
+      <div class="tab" data-tab="history">📖 Insight</div>
     </div>
     <button class="tabbar-toggle" id="tabbarToggle">▾ 전체 보기</button>
   </div>
@@ -249,6 +323,10 @@
     <div class="card">
       <h2>🩹 통증 부위</h2>
       <div id="regionCats"></div>
+      <div style="display:flex; gap:6px; margin-top:8px;">
+        <input type="text" id="region-custom-input" placeholder="목록에 없는 부위는 직접 입력 (예: 새끼발가락)" style="flex:1;">
+        <button class="btn-ghost" id="region-custom-add" style="flex:0 0 auto;">추가</button>
+      </div>
       <div class="field-label" style="margin-top:16px;">선택된 부위</div>
       <div class="chips" id="selectedRegionsView"><span style="font-size:12px;color:var(--ink-soft);">아직 없음</span></div>
 
@@ -273,7 +351,11 @@
       <div class="field-label">강도: <span id="pain-intensity-val">5</span> / 10</div>
       <input type="range" id="pain-intensity" min="1" max="10" value="5" style="width:100%;">
 
+      <div class="field-label">상세 설명 (선택)</div>
+      <textarea id="pain-note" rows="2" placeholder="예: 계단 오를 때 특히 심하고, 아침에 뻣뻣한 느낌"></textarea>
+
       <button class="btn-primary" style="width:100%;margin-top:14px;" id="pain-save">기록 저장</button>
+      <div id="pain-ai-result" style="margin-top:10px;"></div>
     </div>
   </div>
 
@@ -286,21 +368,40 @@
     </div>
 
     <div class="card">
-      <h2>주기 기록하기</h2>
-      <div class="field-label">시작일</div>
-      <input type="date" id="cycle-start">
-      <div class="field-label">종료일 (진행 중이면 비워두세요)</div>
-      <input type="date" id="cycle-end">
-      <button class="btn-primary" style="width:100%;margin-top:12px;" id="cycle-add">이 기간으로 주기 추가</button>
-      <div class="hint">지난 주기도 시작일·종료일을 골라서 나중에 추가할 수 있어요.</div>
+      <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:10px; position:relative;">
+        <button class="date-nav-arrow" id="calPrevMonth" style="background:#F5F2FF;">‹</button>
+        <button id="calMonthLabel" style="background:none; font-family:'Pretendard',sans-serif; font-weight:800; font-size:15px; color:var(--lavender-deep); font-weight:700; padding:4px 10px;">2026년 8월</button>
+        <button class="date-nav-arrow" id="calNextMonth" style="background:#F5F2FF;">›</button>
+      </div>
+      <div id="calGrid" style="touch-action:pan-y;"></div>
+      <div class="chips" style="margin-top:10px; justify-content:center; display:flex;">
+        <span class="chip flag">━ 생리 기간</span>
+        <span class="chip">● PMS 증상 기록됨</span>
+      </div>
 
-      <div class="field-label" style="margin-top:18px;">오늘 PMS · 생리 증상 (선택)</div>
-      <div class="field-label">증상</div>
-      <div class="option-grid" id="pms-symptoms">
-        <div class="option-btn" data-v="복통">복통</div>
-        <div class="option-btn" data-v="두통">두통</div>
-        <div class="option-btn" data-v="유방 압통">유방 압통</div>
-        <div class="option-btn" data-v="부종">부종</div>
+      <!-- Year picker overlay -->
+      <div id="calYearPicker" style="display:none; margin-top:10px;">
+        <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:8px;">
+          <button class="date-nav-arrow" id="calYearPrev" style="background:#F5F2FF;">‹</button>
+          <div style="font-weight:700; color:var(--lavender-deep);" id="calYearPickerLabel">2026년</div>
+          <button class="date-nav-arrow" id="calYearNext" style="background:#F5F2FF;">›</button>
+        </div>
+        <div id="calYearGrid" style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px;"></div>
+      </div>
+
+      <div id="calDayActionCard" style="display:none; margin-top:14px; padding-top:14px; border-top:1px dashed #E4DEF7;">
+        <div id="calDayActionTitle" style="font-weight:700; color:var(--ink); margin-bottom:10px;">8월 17일</div>
+        <div class="option-grid">
+          <button class="btn-primary" id="calMarkStart" style="background:var(--pink-deep);">생리 시작</button>
+          <button class="btn-primary" id="calMarkEnd" style="background:var(--sky-deep);">생리 종료</button>
+        </div>
+
+        <div class="field-label" style="margin-top:12px;">이 날의 PMS · 생리 증상</div>
+        <div class="option-grid compact-chips" id="pms-symptoms">
+          <div class="option-btn" data-v="복통">복통</div>
+          <div class="option-btn" data-v="두통">두통</div>
+          <div class="option-btn" data-v="유방 압통">유방 압통</div>
+          <div class="option-btn" data-v="부종">부종</div>
         <div class="option-btn" data-v="감정기복">감정기복</div>
         <div class="option-btn" data-v="피로감">피로감</div>
         <div class="option-btn" data-v="여드름">여드름</div>
@@ -310,7 +411,12 @@
       <div class="field-label">기초체온 (선택, 기상 직후 측정)</div>
       <input type="number" step="0.01" id="bbt-input" placeholder="예: 36.52">
 
-      <button class="btn-primary" style="width:100%;margin-top:14px;" id="pms-save">증상 저장</button>
+      <div class="field-label">상세 설명 (선택)</div>
+      <textarea id="pms-note" rows="2" placeholder="예: 평소보다 양이 많고 허리 통증도 같이 있음"></textarea>
+
+      <button class="btn-primary" style="width:100%;margin-top:14px;" id="pms-save">이 날 증상 저장</button>
+      <div id="pms-ai-result" style="margin-top:10px;"></div>
+      </div>
     </div>
 
     <div class="card">
@@ -322,44 +428,81 @@
   <!-- MEDICAL PROFILE -->
   <div class="panel" id="panel-medical">
     <div class="card">
-      <h2>🩺 지병</h2>
-      <div id="conditionList"><div class="empty">등록된 지병 없음</div></div>
-      <div class="field-label">진단명</div>
-      <input type="text" id="cond-name" placeholder="예: 편두통" style="width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;">
-      <div class="field-label">진단 시기 / 메모 (선택)</div>
-      <input type="text" id="cond-note" placeholder="예: 2022년부터, 스트레스 시 악화" style="width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;">
-      <button class="btn-primary" style="width:100%;margin-top:12px;" id="cond-add">지병 추가</button>
-    </div>
-
-    <div class="card">
-      <h2>💊 복용 중인 약물</h2>
-      <div id="medList"><div class="empty">등록된 약물 없음</div></div>
-      <div class="field-label">약 이름</div>
-      <input type="text" id="med-name" placeholder="예: 타이레놀" style="width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;">
-      <div class="field-label">용량</div>
-      <input type="text" id="med-dose" placeholder="예: 500mg 1정" style="width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;">
-      <div class="field-label">복용 주기</div>
-      <div class="option-grid" id="med-freq">
-        <div class="option-btn" data-v="1일 1회 아침">1일 1회 아침</div>
-        <div class="option-btn" data-v="1일 1회 저녁">1일 1회 저녁</div>
-        <div class="option-btn" data-v="1일 2회">1일 2회</div>
-        <div class="option-btn" data-v="1일 3회">1일 3회</div>
-        <div class="option-btn" data-v="필요시 복용">필요시 복용</div>
-        <div class="option-btn" data-v="주 1회">주 1회</div>
+      <h2>📅 복용 캘린더</h2>
+      <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:12px;">
+        <button class="date-nav-arrow" id="medCalPrev" style="background:#F5F2FF;">‹</button>
+        <div id="medCalLabel" style="font-family:'Pretendard',sans-serif; font-weight:800; font-size:14px; color:var(--lavender-deep);">8/17(월)~8/23(일)</div>
+        <button class="date-nav-arrow" id="medCalNext" style="background:#F5F2FF;">›</button>
       </div>
-      <div class="field-label">처방 기관 / 기간 (선택)</div>
-      <input type="text" id="med-note" placeholder="예: OO내과, 3개월 처방" style="width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;">
-      <button class="btn-primary" style="width:100%;margin-top:12px;" id="med-add">약물 추가</button>
+      <div id="medCalGrid"></div>
+      <div id="medCalNoneNote" class="hint" style="display:none;">등록된 약/영양제 중 매일 정해진 복용 주기(1일 1~3회)가 있는 항목이 없어요.</div>
     </div>
 
     <div class="card">
-      <h2>🌿 영양제</h2>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h2 style="margin:0;">💊 복용 중인 약물</h2>
+        <button class="btn-ghost" id="med-toggle-form">+ 추가</button>
+      </div>
+      <div id="medList"><div class="empty">등록된 약물 없음</div></div>
+      <div id="med-form-fields" style="display:none; margin-top:10px;">
+        <div class="field-label">약 이름</div>
+        <input type="text" id="med-name" placeholder="예: 타이레놀">
+        <div class="field-label">용량</div>
+        <input type="text" id="med-dose" placeholder="예: 500mg 1정">
+        <div class="field-label">복용 주기</div>
+        <div class="option-grid" id="med-freq">
+          <div class="option-btn" data-v="1일 1회 아침">1일 1회 아침</div>
+          <div class="option-btn" data-v="1일 1회 저녁">1일 1회 저녁</div>
+          <div class="option-btn" data-v="1일 2회">1일 2회</div>
+          <div class="option-btn" data-v="1일 3회">1일 3회</div>
+          <div class="option-btn" data-v="필요시 복용">필요시 복용</div>
+          <div class="option-btn" data-v="주 1회">주 1회</div>
+        </div>
+        <div class="field-label">처방 기관 / 기간 (선택)</div>
+        <input type="text" id="med-note" placeholder="예: OO내과, 3개월 처방">
+        <button class="btn-primary" style="width:100%;margin-top:12px;" id="med-add">약물 추가</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h2 style="margin:0;">🌿 영양제</h2>
+        <button class="btn-ghost" id="supp-toggle-form">+ 추가</button>
+      </div>
       <div id="suppList"><div class="empty">등록된 영양제 없음</div></div>
-      <div class="field-label">이름</div>
-      <input type="text" id="supp-name" placeholder="예: 마그네슘" style="width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;">
-      <div class="field-label">용량 / 복용 주기</div>
-      <input type="text" id="supp-dose" placeholder="예: 400mg, 1일 1회 저녁" style="width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;">
-      <button class="btn-primary" style="width:100%;margin-top:12px;" id="supp-add">영양제 추가</button>
+      <div id="supp-form-fields" style="display:none; margin-top:10px;">
+        <div class="field-label">이름</div>
+        <input type="text" id="supp-name" placeholder="예: 마그네슘">
+        <div class="field-label">용량 (선택)</div>
+        <input type="text" id="supp-dose" placeholder="예: 400mg">
+        <div class="field-label">복용 주기</div>
+        <div class="option-grid" id="supp-freq">
+          <div class="option-btn" data-v="1일 1회 아침">1일 1회 아침</div>
+          <div class="option-btn" data-v="1일 1회 저녁">1일 1회 저녁</div>
+          <div class="option-btn" data-v="1일 2회">1일 2회</div>
+          <div class="option-btn" data-v="1일 3회">1일 3회</div>
+          <div class="option-btn" data-v="필요시 복용">필요시 복용</div>
+          <div class="option-btn" data-v="주 1회">주 1회</div>
+        </div>
+        <div class="field-label">메모 (선택)</div>
+        <input type="text" id="supp-note" placeholder="예: 식후 복용">
+        <button class="btn-primary" style="width:100%;margin-top:12px;" id="supp-add">영양제 추가</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h2 style="margin:0;">🩺 지병</h2>
+        <button class="btn-ghost" id="cond-toggle-form">+ 추가</button>
+      </div>
+      <div id="conditionList"><div class="empty">등록된 지병 없음</div></div>
+      <div id="cond-form-fields" style="display:none; margin-top:10px;">
+        <div class="field-label">진단명</div>
+        <input type="text" id="cond-name" placeholder="예: 편두통">
+        <div class="field-label">진단 시기 / 메모 (선택)</div>
+        <input type="text" id="cond-note" placeholder="예: 2022년부터, 스트레스 시 악화">
+        <button class="btn-primary" style="width:100%;margin-top:12px;" id="cond-add">지병 추가</button>
+      </div>
     </div>
 
     <div class="hint" style="padding:0 4px;">이 정보는 통증·스트레스 분석 시 배경 참고용으로만 함께 고려돼요. 약물 상호작용 등 전문적 판단은 약사·의사와 상담하세요.</div>
@@ -368,7 +511,15 @@
   <!-- BODY COMPOSITION & CHECKUP -->
   <div class="panel" id="panel-body">
     <div class="card">
-      <h2>📊 체성분 기록</h2>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h2 style="margin:0;">체중 · 체지방률 추이</h2>
+        <button class="btn-ghost" id="bc-toggle-form">+ 추가</button>
+      </div>
+      <div id="bcTrend"><div class="empty">기록이 2개 이상 쌓이면 추이가 보여요</div></div>
+    </div>
+
+    <div class="card" id="bc-form-card" style="display:none;">
+      <h2>📊 체성분 기록 추가</h2>
       <div class="field-label">인바디 결과지 사진으로 자동 인식 (선택)</div>
       <input type="file" id="body-photo" accept="image/*" style="width:100%;font-size:13px;">
       <div id="body-photo-status" class="hint" style="display:none;"></div>
@@ -388,11 +539,6 @@
     </div>
 
     <div class="card">
-      <h2>체중 · 체지방률 추이</h2>
-      <div id="bcTrend"><div class="empty">기록이 2개 이상 쌓이면 추이가 보여요</div></div>
-    </div>
-
-    <div class="card">
       <h2>🏥 건강검진 결과</h2>
       <div id="checkupList"><div class="empty">등록된 결과 없음</div></div>
       <div class="field-label">항목명</div>
@@ -401,10 +547,43 @@
       <input type="text" id="ck-value" placeholder="예: 95 mg/dL, 120/80" style="width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;">
       <button class="btn-primary" style="width:100%;margin-top:12px;" id="ck-add">검진 결과 추가</button>
     </div>
+
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h2 style="margin:0;">📸 체형 변화 사진</h2>
+        <button class="btn-ghost" id="photo-toggle-form">+ 추가</button>
+      </div>
+      <div id="bodyPhotoGallery"><div class="empty">아직 등록된 사진이 없어요</div></div>
+      <div id="photo-form-fields" style="display:none; margin-top:10px;">
+        <div class="field-label">날짜</div>
+        <input type="date" id="photo-date">
+        <div class="field-label">사진</div>
+        <input type="file" id="photo-file" accept="image/*">
+        <div class="field-label">메모 (선택)</div>
+        <input type="text" id="photo-note" placeholder="예: 다이어트 6주차">
+        <button class="btn-primary" style="width:100%;margin-top:12px;" id="photo-save">사진 추가</button>
+        <div class="hint">사진은 용량 절약을 위해 자동으로 축소돼서 저장돼요.</div>
+      </div>
+    </div>
   </div>
 
   <!-- EXERCISE -->
   <div class="panel" id="panel-exercise">
+    <div class="card">
+      <h2>📅 이번 주 스케줄</h2>
+      <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px;">
+        <button class="date-nav-arrow" id="planWeekPrev" style="background:#F5F2FF;">‹</button>
+        <div style="text-align:center;">
+          <div style="font-family:'Pretendard',sans-serif;font-weight:800;font-size:14px;color:var(--lavender-deep);" id="planWeekLabel">8/17(월)~8/23(일)</div>
+        </div>
+        <button class="date-nav-arrow" id="planWeekNext" style="background:#F5F2FF;">›</button>
+      </div>
+      <div id="weeklyPlanGrid"></div>
+      <div id="weeklyPlanNoneNote" class="hint" style="display:none;">등록된 반복 종목이 없어요. 아래 "반복 운동 종목"에서 등록해보세요.</div>
+      <button class="btn-ghost" style="width:100%;margin-top:10px;" id="plan-copy-prev">지난 주와 동일하게 복사</button>
+      <div class="hint">해당 요일·시간대 칸을 탭하면 완료 표시로 색칠돼요.</div>
+    </div>
+
     <div class="card">
       <h2>🏋️ 오늘 운동 기록</h2>
       <div class="field-label">운동 종류</div>
@@ -415,8 +594,8 @@
         <div class="option-btn" data-v="러닝">러닝</div>
         <div class="option-btn" data-v="걷기">걷기</div>
         <div class="option-btn" data-v="요가/필라테스">요가/필라테스</div>
-        <div class="option-btn" data-v="기타">기타</div>
       </div>
+      <input type="text" id="ex-type-custom" placeholder="목록에 없으면 직접 입력 (예: 클라이밍)" style="margin-top:8px;">
 
       <div class="field-label">강도</div>
       <div class="option-grid" id="ex-intensity">
@@ -424,6 +603,9 @@
         <div class="option-btn selected" data-v="보통">보통</div>
         <div class="option-btn" data-v="격렬하게">격렬하게</div>
       </div>
+
+      <div class="field-label">시작 시간</div>
+      <input type="time" id="ex-time">
 
       <div class="field-label">운동 시간 (분)</div>
       <input type="number" id="ex-duration" placeholder="예: 40" style="width:100%;border:1px solid #E4DEF7;border-radius:14px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;">
@@ -438,9 +620,23 @@
         <div class="hint">근력운동 볼륨(세트×횟수×중량) 추이로 근력 향상 경향을 참고할 수 있어요.</div>
       </div>
 
+      <div class="field-label">메모 (선택)</div>
+      <input type="text" id="ex-note" placeholder="예: 식후 걷기, 런지 10회 3세트">
+
       <div id="ex-bodyweight-note" class="hint"></div>
 
-      <button class="btn-primary" style="width:100%;margin-top:12px;" id="ex-save">운동 기록 저장</button>
+      <button class="btn-primary" style="width:100%;margin-top:12px;" id="ex-save">운동 기록 추가</button>
+    </div>
+
+    <div class="card">
+      <h2>오늘 기록된 운동</h2>
+      <div id="exerciseTodayList"><div class="empty">오늘 기록된 운동이 없어요</div></div>
+    </div>
+
+    <div class="card">
+      <h2>🎯 이번 주 목표 달성 현황</h2>
+      <div id="exerciseGoalDashboard"><div class="empty">불러오는 중…</div></div>
+      <div class="hint">일반적인 성인 신체활동 권장기준(유산소 주 150분, 근력운동 주 2회 이상)을 참고 기준으로 삼은 추정치예요.</div>
     </div>
 
     <div class="card">
@@ -455,19 +651,48 @@
     </div>
 
     <div class="card">
-      <h2>📅 이번 주 운동 계획</h2>
-      <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px;">
-        <button class="date-nav-arrow" id="planWeekPrev" style="background:#F5F2FF;">‹</button>
-        <div style="text-align:center;">
-          <div style="font-family:'Pretendard',sans-serif; font-weight:700;font-size:15px;color:var(--lavender-deep);" id="planWeekLabel">8/17(월)~8/23(일)</div>
-        </div>
-        <button class="date-nav-arrow" id="planWeekNext" style="background:#F5F2FF;">›</button>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h2 style="margin:0;">🔁 반복 운동 종목</h2>
+        <button class="btn-ghost" id="tmpl-toggle-form">+ 추가</button>
       </div>
-      <button class="btn-ghost" style="width:100%;margin-bottom:14px;" id="plan-copy-prev">지난 주와 동일하게 복사</button>
+      <div id="exerciseTemplateList"><div class="empty">등록된 반복 종목이 없어요</div></div>
 
-      <div id="weeklyPlanGrid"></div>
-      <button class="btn-primary" style="width:100%;margin-top:12px;" id="plan-save">이번 주 계획 저장</button>
-      <div class="hint">하루에 여러 운동을 겹쳐서 선택할 수 있고, 목록에 없는 운동은 직접 입력해서 추가할 수 있어요. 저장해두면 다음 식단 설계 때 그날 운동에 맞춰 영양소를 제안해줘요.</div>
+      <div id="tmpl-form-fields" style="display:none; margin-top:10px;">
+        <div class="field-label">종목</div>
+        <div class="option-grid" id="tmpl-type">
+          <div class="option-btn" data-v="홈트">홈트</div>
+          <div class="option-btn" data-v="헬스(웨이트)">헬스(웨이트)</div>
+          <div class="option-btn" data-v="수영">수영</div>
+          <div class="option-btn" data-v="러닝">러닝</div>
+          <div class="option-btn" data-v="걷기">걷기</div>
+          <div class="option-btn" data-v="요가/필라테스">요가/필라테스</div>
+        </div>
+        <input type="text" id="tmpl-type-custom" placeholder="목록에 없으면 직접 입력" style="margin-top:8px;">
+
+        <div class="field-label">요일 (복수 선택)</div>
+        <div class="option-grid" id="tmpl-days">
+          <div class="option-btn" data-v="월">월</div>
+          <div class="option-btn" data-v="화">화</div>
+          <div class="option-btn" data-v="수">수</div>
+          <div class="option-btn" data-v="목">목</div>
+          <div class="option-btn" data-v="금">금</div>
+          <div class="option-btn" data-v="토">토</div>
+          <div class="option-btn" data-v="일">일</div>
+        </div>
+
+        <div class="field-label">시간대</div>
+        <div class="option-grid" id="tmpl-timeofday">
+          <div class="option-btn" data-v="오전">오전</div>
+          <div class="option-btn" data-v="오후">오후</div>
+          <div class="option-btn" data-v="저녁">저녁</div>
+        </div>
+
+        <div class="field-label">소요 시간 (분)</div>
+        <input type="number" id="tmpl-duration" placeholder="예: 50">
+
+        <button class="btn-primary" style="width:100%;margin-top:12px;" id="tmpl-add">종목 등록</button>
+        <div class="hint">예: 수영 · 화·목·토 · 오전 · 50분 — 등록해두면 매주 자동으로 반복 적용돼요.</div>
+      </div>
     </div>
   </div>
 
@@ -493,8 +718,15 @@
       <input type="file" id="meal-photo" accept="image/*" style="width:100%;font-size:13px;">
       <div id="meal-photo-status" class="hint" style="display:none;"></div>
 
+      <div class="field-label">시간</div>
+      <input type="time" id="meal-time">
+
       <div class="field-label">음식 이름</div>
-      <input type="text" id="meal-name" placeholder="예: 닭가슴살 샐러드">
+      <div style="display:flex; gap:6px;">
+        <input type="text" id="meal-name" placeholder="예: 닭가슴살 샐러드" style="flex:1;">
+        <button class="btn-ghost" id="meal-fatsecret-link" style="flex:0 0 auto;">🔍 확인</button>
+      </div>
+      <div class="hint">음식 이름을 적고 "확인"을 누르면 AI가 예상 영양소를 계산해서 채워줘요 (예: "계란 3개"). 실제와 오차가 있을 수 있어 참고용이에요.</div>
       <div class="field-label">칼로리 (kcal)</div>
       <input type="number" id="meal-kcal">
       <div class="field-label">탄수화물 (g)</div>
@@ -510,6 +742,11 @@
     <div class="card">
       <h2>오늘 합계</h2>
       <div id="dietSummary"><div class="empty">오늘 기록된 식사가 없어요</div></div>
+    </div>
+
+    <div class="card">
+      <h2>🕒 식사 시간 패턴</h2>
+      <div id="mealTimingAnalysis"><div class="empty">기록이 쌓이면 분석이 표시돼요</div></div>
     </div>
   </div>
 
@@ -553,7 +790,7 @@ const authRow = document.getElementById('authRow');
 
 (async function setupFirebase(){
   if(!firebaseConfigured){
-    authRow.innerHTML = `<span>🔓 로컬 저장 모드 (Firebase 설정 전)</span>`;
+    authRow.innerHTML = `<span title="로컬 저장 모드">🔓</span>`;
     return;
   }
   try{
@@ -572,16 +809,16 @@ const authRow = document.getElementById('authRow');
     });
   }catch(e){
     console.warn('Firebase 로딩 실패, 로컬 저장 모드로 전환', e);
-    authRow.innerHTML = `<span>🔓 로컬 저장 모드 (온라인 연결 필요)</span>`;
+    authRow.innerHTML = `<span title="로컬 저장 모드">🔓</span>`;
   }
 })();
 
 function renderAuthRow(){
   if(currentUser){
-    authRow.innerHTML = `<span>👋 ${currentUser.displayName || '사용자'}님</span><button class="auth-btn" id="logoutBtn">로그아웃</button>`;
+    authRow.innerHTML = `<span>👋 ${currentUser.displayName || '사용자'}</span><button class="auth-btn" id="logoutBtn">로그아웃</button>`;
     document.getElementById('logoutBtn').onclick = ()=> fbAuthFns.signOut(auth);
   } else {
-    authRow.innerHTML = `<button class="auth-btn" id="loginBtn">🔐 Google로 로그인 (백업 켜기)</button>`;
+    authRow.innerHTML = `<button class="auth-btn" id="loginBtn">🔐 로그인</button>`;
     document.getElementById('loginBtn').onclick = ()=>
       fbAuthFns.signInWithPopup(auth, new fbAuthFns.GoogleAuthProvider()).catch(e=>showToast('로그인 실패: '+e.message));
   }
@@ -598,7 +835,7 @@ $$('.tab').forEach(tab=>{
     tab.classList.add('active');
     document.getElementById('panel-'+tab.dataset.tab).classList.add('active');
     if(tab.dataset.tab==='history') renderHistory();
-    if(tab.dataset.tab==='cycle') renderCycle();
+    if(tab.dataset.tab==='cycle') renderCyclePanel();
     if(tab.dataset.tab==='medical') renderMedicalProfile();
     if(tab.dataset.tab==='body') renderBodyPanel();
     if(tab.dataset.tab==='exercise') renderExercisePanel();
@@ -642,7 +879,9 @@ const WEEKDAY_KR_FULL = ['일요일','월요일','화요일','수요일','목요
 function todayStr(){ return new Date().toISOString().slice(0,10); }
 
 function renderDateNav(){
-  document.getElementById('dateNavDay').textContent = fmtDateWithDay(activeDate);
+  const d = new Date(activeDate);
+  document.getElementById('dateNavDay').textContent = `${d.getMonth()+1}/${d.getDate()}`;
+  document.getElementById('dateNavWeekday').textContent = `(${WEEKDAY_KR_FULL[d.getDay()][0]})`;
   document.getElementById('dateNavTodayBtn').classList.toggle('hidden', activeDate===todayStr());
   initDateFields();
 }
@@ -753,6 +992,15 @@ function renderSelectedRegions(){
   });
 }
 
+document.getElementById('region-custom-add').onclick = ()=>{
+  const input = document.getElementById('region-custom-input');
+  const v = input.value.trim();
+  if(!v){ showToast('부위 이름을 입력해주세요'); return; }
+  if(!selectedRegions.includes(v)) selectedRegions.push(v);
+  input.value='';
+  renderSelectedRegions();
+};
+
 // ---------- Hybrid storage (Firestore or local artifact storage) ----------
 async function saveRecord(col, data, dateOverride){
   data.savedAt = Date.now();
@@ -768,7 +1016,7 @@ async function saveRecord(col, data, dateOverride){
     }
   } else {
     const key = `${col}:${data.date}:${Date.now()}`;
-    const maxAttempts = 3;
+    const maxAttempts = 2;
     for(let attempt=1; attempt<=maxAttempts; attempt++){
       try{
         const res = await window.storage.set(key, JSON.stringify(data), false);
@@ -776,7 +1024,7 @@ async function saveRecord(col, data, dateOverride){
         throw new Error('빈 응답');
       }catch(e){
         console.warn(`storage.set 실패 (${attempt}/${maxAttempts})`, e);
-        if(attempt<maxAttempts) await new Promise(r=>setTimeout(r, 400*attempt));
+        if(attempt<maxAttempts) await new Promise(r=>setTimeout(r, 250));
       }
     }
     showToast('⚠️ 저장에 실패했어요. 네트워크를 확인하고 다시 시도해주세요');
@@ -807,6 +1055,71 @@ async function deleteRecord(col, id){
   }
 }
 
+// ---------- 저장 확인 / 내보내기 / 복원 ----------
+const ALL_COLLECTIONS = [
+  'dailyCheckins','stressSignals','painRecords','periodCycles','pmsLogs',
+  'medicalConditions','medications','supplements','medicationTaken',
+  'bodyComposition','checkupResults','exerciseLogs','weeklyExercisePlan','mealLogs','bodyPhotos'
+];
+
+document.getElementById('backupBtn').onclick = async ()=>{
+  showToast('저장 상태 확인 중…');
+  let total = 0;
+  for(const col of ALL_COLLECTIONS){
+    total += (await listRecords(col)).length;
+  }
+  showToast(`✅ 현재 총 ${total}개 기록이 안전하게 저장돼 있어요`);
+};
+
+document.getElementById('exportBtn').onclick = async ()=>{
+  showToast('백업 파일 만드는 중…');
+  try{
+    const data = {};
+    for(const col of ALL_COLLECTIONS){
+      data[col] = await listRecords(col);
+    }
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `웰니스로그_백업_${todayStr()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showToast('⬇ 백업 파일을 내보냈어요');
+  }catch(err){
+    console.error('내보내기 실패', err);
+    showToast('⚠️ 내보내기에 실패했어요');
+  }
+};
+
+document.getElementById('restoreBtn').onclick = ()=>{
+  document.getElementById('restoreFileInput').click();
+};
+document.getElementById('restoreFileInput').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  try{
+    const text = await file.text();
+    const data = JSON.parse(text);
+    let count = 0;
+    for(const [col, items] of Object.entries(data)){
+      if(!Array.isArray(items)) continue;
+      for(const item of items){
+        const { _id, savedAt, date, ...rest } = item;
+        const id = await saveRecord(col, rest, date);
+        if(id) count++;
+      }
+    }
+    showToast(`↺ ${count}개 기록을 복원했어요`);
+  }catch(err){
+    console.error(err);
+    showToast('⚠️ 복원 파일을 읽지 못했어요');
+  }
+  e.target.value = '';
+});
+
 // ---------- Stress signal save ----------
 document.getElementById('stress-save').onclick = async ()=>{
   const symptoms = getSelected('stress-symptoms');
@@ -830,46 +1143,234 @@ document.getElementById('pain-save').onclick = async ()=>{
   if(selectedRegions.length===0){ showToast('부위를 선택해주세요'); return; }
   const type = document.getElementById('type-internal').classList.contains('selected') ? '내장(장기 느낌)' :
                (document.getElementById('type-external').classList.contains('selected') ? '외부(근육·관절·피부)' : '미선택');
+  const note = document.getElementById('pain-note').value.trim();
   const record = {
     type:'pain',
     regions: [...selectedRegions],
     painType: type,
     quality: getSelected('pain-quality'),
-    intensity: document.getElementById('pain-intensity').value
+    intensity: document.getElementById('pain-intensity').value,
+    note
   };
   const id = await saveRecord('painRecords', record, activeDate);
   if(!id) return;
   showToast('통증 기록 저장됐어요');
   selectedRegions = [];
   renderSelectedRegions();
+  document.getElementById('pain-note').value='';
   $$('.region-chip.selected').forEach(c=>c.classList.remove('selected'));
   $$('#panel-pain .selected').forEach(b=>b.classList.remove('selected'));
+
+  if(note){
+    const resultEl = document.getElementById('pain-ai-result');
+    resultEl.innerHTML = `<div class="hint">🔍 살펴보는 중…</div>`;
+    try{
+      const raw = await callClaude([{role:'user', content:
+        `부위: ${record.regions.join(', ')} / 양상: ${record.quality.join(', ')} / 강도: ${record.intensity}/10 / 설명: "${note}"
+이 통증 기록에 대해 도움이 될 만한 짧은 코멘트를 1~2문장으로 줘. 특정 질병명으로 진단하지 말고, 일반적인 생활습관 팁이나 어떤 진료과 상담이 방향에 맞을지 정도만 부드럽게 제안해. 증상이 심하거나 응급 신호가 있으면 병원 방문을 권해.`
+      }], "너는 따뜻하지만 신중한 건강 코치야. 절대 진단하지 않고, 방향성 제안만 짧게 해.");
+      await updateRecord('painRecords', id, { ...record, aiInsight: raw.trim() });
+      resultEl.innerHTML = `<div class="hint" style="color:var(--lavender-deep);">🔍 ${raw.trim()}</div>`;
+    }catch(e){
+      resultEl.innerHTML = '';
+    }
+  } else {
+    document.getElementById('pain-ai-result').innerHTML = '';
+  }
 };
 
-// ---------- Cycle tracking (range-based) ----------
+// ---------- Cycle tracking (calendar-based) ----------
 setupMultiSelect('pms-symptoms');
 
-document.getElementById('cycle-add').onclick = async ()=>{
-  const start = document.getElementById('cycle-start').value;
-  const end = document.getElementById('cycle-end').value || null;
-  if(!start){ showToast('시작일을 선택해주세요'); return; }
-  if(end && end < start){ showToast('종료일이 시작일보다 빠를 수 없어요'); return; }
-  const id = await saveRecord('periodCycles', { startDate: start, endDate: end }, start);
+async function updateRecord(col, id, data){
+  if(firebaseReady && currentUser){
+    try{
+      await fbStoreFns.updateDoc(fbStoreFns.doc(db, 'users', currentUser.uid, col, id), data);
+      return id;
+    }catch(e){ console.error('업데이트 실패', e); showToast('⚠️ 업데이트에 실패했어요'); return null; }
+  } else {
+    try{
+      const res = await window.storage.set(id, JSON.stringify(data), false);
+      if(res) return id;
+      throw new Error('빈 응답');
+    }catch(e){ console.error('업데이트 실패', e); showToast('⚠️ 업데이트에 실패했어요'); return null; }
+  }
+}
+
+let calViewYear, calViewMonth, calSelectedDate = null;
+let calCyclesCache = [], calPmsCache = [];
+
+(function initCalendarView(){
+  const d = new Date();
+  calViewYear = d.getFullYear();
+  calViewMonth = d.getMonth();
+})();
+
+async function loadCycleCaches(){
+  calCyclesCache = await listRecords('periodCycles');
+  calPmsCache = await listRecords('pmsLogs');
+}
+
+function dateInAnyCycle(dateStr){
+  return calCyclesCache.some(c=>{
+    // 종료일이 없으면 '진행중'으로 보되, 데이터 오류로 무한정 이어지는 걸 막기 위해 시작일로부터 최대 10일까지만 표시
+    const end = c.endDate || addDays(c.startDate, 10);
+    return dateStr>=c.startDate && dateStr<=end;
+  });
+}
+function pmsExistsForDate(dateStr){
+  return calPmsCache.some(p=>p.date===dateStr);
+}
+
+function renderCalGrid(){
+  const grid = document.getElementById('calGrid');
+  const label = document.getElementById('calMonthLabel');
+  const yearPart = calViewYear === new Date().getFullYear() ? '' : `${calViewYear}년 `;
+  label.textContent = `${yearPart}${calViewMonth+1}월`;
+
+  const firstDay = new Date(calViewYear, calViewMonth, 1);
+  const startWeekday = firstDay.getDay();
+  const daysInMonth = new Date(calViewYear, calViewMonth+1, 0).getDate();
+
+  let html = `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;font-size:11px;color:var(--ink-soft);text-align:center;margin-bottom:4px;">
+    ${WEEKDAY_KR.map(d=>`<div>${d}</div>`).join('')}
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;">`;
+
+  for(let i=0;i<startWeekday;i++) html += `<div></div>`;
+  for(let day=1; day<=daysInMonth; day++){
+    const dateStr = `${calViewYear}-${String(calViewMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const inPeriod = dateInAnyCycle(dateStr);
+    const hasPms = pmsExistsForDate(dateStr);
+    const isToday = dateStr === todayStr();
+    const isSelected = dateStr === calSelectedDate;
+    html += `<div class="cal-day ${inPeriod?'in-period':''} ${isToday?'is-today':''} ${isSelected?'is-selected':''}" data-date="${dateStr}">
+      <span>${day}</span>${hasPms? '<div class="cal-dot"></div>':''}
+    </div>`;
+  }
+  grid.innerHTML = html + `</div>`;
+}
+
+document.getElementById('calGrid').addEventListener('click', e=>{
+  const cell = e.target.closest('.cal-day');
+  if(!cell) return;
+  calSelectedDate = cell.dataset.date;
+  openDayActionCard();
+  renderCalGrid();
+});
+
+function openDayActionCard(){
+  const card = document.getElementById('calDayActionCard');
+  card.style.display='block';
+  const d = new Date(calSelectedDate);
+  document.getElementById('calDayActionTitle').textContent = `${d.getMonth()+1}월 ${d.getDate()}일 (${WEEKDAY_KR[d.getDay()]})`;
+  const existing = calPmsCache.find(p=>p.date===calSelectedDate);
+  $$('#pms-symptoms .option-btn').forEach(b=>b.classList.toggle('selected', !!(existing && (existing.symptoms||[]).includes(b.dataset.v))));
+  document.getElementById('bbt-input').value = existing && existing.bbt!=null ? existing.bbt : '';
+  document.getElementById('pms-note').value = existing && existing.note ? existing.note : '';
+  document.getElementById('pms-ai-result').innerHTML = existing && existing.aiInsight ? `<div class="hint" style="color:var(--lavender-deep);">🔍 ${existing.aiInsight}</div>` : '';
+  setTimeout(()=>{ if(typeof card.scrollIntoView === 'function') card.scrollIntoView({behavior:'smooth', block:'center'}); }, 50);
+}
+
+document.getElementById('calPrevMonth').onclick = ()=>{
+  calViewMonth--; if(calViewMonth<0){calViewMonth=11; calViewYear--;}
+  renderCalGrid();
+};
+document.getElementById('calNextMonth').onclick = ()=>{
+  calViewMonth++; if(calViewMonth>11){calViewMonth=0; calViewYear++;}
+  renderCalGrid();
+};
+
+let calTouchStartX = null;
+document.getElementById('calGrid').addEventListener('touchstart', e=>{ calTouchStartX = e.touches[0].clientX; });
+document.getElementById('calGrid').addEventListener('touchend', e=>{
+  if(calTouchStartX==null) return;
+  const dx = e.changedTouches[0].clientX - calTouchStartX;
+  if(Math.abs(dx)>50){
+    if(dx<0) document.getElementById('calNextMonth').click();
+    else document.getElementById('calPrevMonth').click();
+  }
+  calTouchStartX=null;
+});
+
+document.getElementById('calMonthLabel').onclick = ()=>{
+  const picker = document.getElementById('calYearPicker');
+  const isHidden = picker.style.display==='none';
+  picker.style.display = isHidden? 'block':'none';
+  if(isHidden) renderYearPicker();
+};
+function renderYearPicker(){
+  document.getElementById('calYearPickerLabel').textContent = `${calViewYear}년`;
+  const grid = document.getElementById('calYearGrid');
+  grid.innerHTML = Array.from({length:12},(_,i)=>i).map(m=>`
+    <button class="option-btn ${m===calViewMonth?'selected':''}" data-month="${m}" style="padding:10px 4px;">${m+1}월</button>
+  `).join('');
+}
+document.getElementById('calYearPrev').onclick = ()=>{ calViewYear--; renderYearPicker(); };
+document.getElementById('calYearNext').onclick = ()=>{ calViewYear++; renderYearPicker(); };
+document.getElementById('calYearGrid').addEventListener('click', e=>{
+  const btn = e.target.closest('[data-month]');
+  if(!btn) return;
+  calViewMonth = parseInt(btn.dataset.month);
+  document.getElementById('calYearPicker').style.display='none';
+  renderCalGrid();
+});
+
+document.getElementById('calMarkStart').onclick = async ()=>{
+  if(!calSelectedDate) return;
+  const id = await saveRecord('periodCycles', { startDate: calSelectedDate, endDate: null }, calSelectedDate);
   if(!id) return;
-  showToast('주기가 기록됐어요');
-  document.getElementById('cycle-end').value='';
+  showToast('생리 시작일로 기록했어요');
+  await loadCycleCaches();
+  renderCalGrid();
   renderCycle();
 };
+
+document.getElementById('calMarkEnd').onclick = async ()=>{
+  if(!calSelectedDate) return;
+  const openCycles = calCyclesCache.filter(c=>!c.endDate && c.startDate<=calSelectedDate).sort((a,b)=>b.startDate.localeCompare(a.startDate));
+  if(openCycles.length===0){ showToast('먼저 생리 시작일을 기록해주세요'); return; }
+  const target = openCycles[0];
+  const { _id, ...rest } = target;
+  const ok = await updateRecord('periodCycles', target._id, { ...rest, endDate: calSelectedDate });
+  if(!ok) return;
+  showToast('생리 종료일로 기록했어요');
+  await loadCycleCaches();
+  renderCalGrid();
+  renderCycle();
+};
+
 document.getElementById('pms-save').onclick = async ()=>{
+  if(!calSelectedDate){ showToast('날짜를 먼저 선택해주세요'); return; }
   const symptoms = getSelected('pms-symptoms');
   const bbt = document.getElementById('bbt-input').value;
-  if(symptoms.length===0 && !bbt){ showToast('증상이나 체온을 입력해주세요'); return; }
-  const id = await saveRecord('pmsLogs', { symptoms, bbt: bbt ? parseFloat(bbt) : null }, activeDate);
+  const note = document.getElementById('pms-note').value.trim();
+  if(symptoms.length===0 && !bbt && !note){ showToast('증상, 체온, 설명 중 하나는 입력해주세요'); return; }
+  const record = { symptoms, bbt: bbt ? parseFloat(bbt) : null, note };
+  const id = await saveRecord('pmsLogs', record, calSelectedDate);
   if(!id) return;
   showToast('증상 저장됐어요');
-  $$('#panel-cycle .selected').forEach(b=>b.classList.remove('selected'));
-  document.getElementById('bbt-input').value='';
+  await loadCycleCaches();
+  renderCalGrid();
   renderCycle();
+
+  if(note){
+    const resultEl = document.getElementById('pms-ai-result');
+    resultEl.innerHTML = `<div class="hint">🔍 살펴보는 중…</div>`;
+    try{
+      const raw = await callClaude([{role:'user', content:
+        `생리/PMS 증상 기록이야. 증상: ${symptoms.join(', ')||'없음'} / 설명: "${note}"
+도움이 될 만한 짧은 코멘트를 1~2문장으로 줘. 특정 질병명으로 진단하지 말고, 일반적인 생활습관 팁이나 산부인과 상담이 필요할지 정도만 부드럽게 제안해.`
+      }], "너는 따뜻하지만 신중한 건강 코치야. 절대 진단하지 않고, 방향성 제안만 짧게 해.");
+      await updateRecord('pmsLogs', id, { ...record, aiInsight: raw.trim() });
+      resultEl.innerHTML = `<div class="hint" style="color:var(--lavender-deep);">🔍 ${raw.trim()}</div>`;
+      await loadCycleCaches();
+    }catch(e){
+      resultEl.innerHTML = '';
+    }
+  } else {
+    document.getElementById('pms-ai-result').innerHTML = '';
+  }
 };
 
 function daysBetween(d1, d2){
@@ -894,6 +1395,12 @@ function fmtCycleRange(start, end){
   const weekNum = Math.ceil(s.getDate()/7);
   const label = end ? `${fmtDateWithDay(start)}~${fmtDateWithDay(end)}` : `${fmtDateWithDay(start)}~진행중`;
   return `${label} · ${s.getMonth()+1}월 ${weekNum}주차`;
+}
+
+async function renderCyclePanel(){
+  await loadCycleCaches();
+  renderCalGrid();
+  await renderCycle();
 }
 
 async function renderCycle(){
@@ -928,12 +1435,10 @@ async function renderCycle(){
     const fertileEnd = addDays(ovulation, 1);
 
     predEl.innerHTML = `
-      <div class="chips" style="margin-bottom:10px;">
-        <span class="chip flag">다음 생리 예상 ${fmtDate(nextPeriod)}</span>
-        <span class="chip">배란 예상 ${fmtDate(ovulation)}</span>
-        <span class="chip">가임기 ${fmtDate(fertileStart)}~${fmtDate(fertileEnd)}</span>
-      </div>
-      <div class="hint">평균 주기 ${avgCycle}일 (최근 ${intervals.length}개 주기 기준) · 실제와 며칠 오차가 있을 수 있어요.</div>`;
+      <div class="pred-row"><span class="pred-label">🩸 다음 생리 예상</span><span class="pred-value">${fmtDate(nextPeriod)}</span></div>
+      <div class="pred-row"><span class="pred-label">🥚 배란 예상일</span><span class="pred-value">${fmtDate(ovulation)}</span></div>
+      <div class="pred-row"><span class="pred-label">🌱 가임기</span><span class="pred-value">${fmtDate(fertileStart)} ~ ${fmtDate(fertileEnd)}</span></div>
+      <div class="hint" style="margin-top:8px;">평균 주기 ${avgCycle}일 (최근 ${intervals.length}개 주기 기준) · 실제와 며칠 오차가 있을 수 있어요.</div>`;
 
     const recentIntervals = intervals.slice(-3);
     if(recentIntervals.some(v=>v<21 || v>35)){
@@ -941,7 +1446,7 @@ async function renderCycle(){
     }
   }
 
-  // 리스트 - 최근순(최신 시작일이 위로)
+  // 리스트 - 최근순(최신 시작일이 위로), 삭제 가능
   const pmsLogs = await listRecords('pmsLogs');
   const sortedCycles = [...cycles].sort((a,b)=> b.startDate.localeCompare(a.startDate));
   const rows = sortedCycles.map(c=>{
@@ -949,15 +1454,43 @@ async function renderCycle(){
     const dayPms = pmsLogs.filter(p=> p.date >= c.startDate && p.date <= rangeEnd);
     const tags = [...new Set(dayPms.flatMap(p=>p.symptoms||[]))];
     return `<div class="record">
-      <div class="record-top"><span class="record-date">🌙 ${fmtCycleRange(c.startDate, c.endDate)}</span></div>
+      <div class="record-top">
+        <span class="record-date">🌙 ${fmtCycleRange(c.startDate, c.endDate)}</span>
+        <button class="option-btn cycle-del-btn" data-id="${c._id}" style="flex:0 0 auto; color:#C24870; padding:4px 10px; font-size:11px;">삭제</button>
+      </div>
       ${tags.length? `<div class="chips">${tags.map(t=>`<span class="chip flag">${t}</span>`).join('')}</div>` : ''}
     </div>`;
   });
   listEl.innerHTML = rows.join('') || '<div class="empty">아직 기록 없음</div>';
+  $$('.cycle-del-btn', listEl).forEach(btn=>{
+    btn.onclick = async ()=>{
+      await deleteRecord('periodCycles', btn.dataset.id);
+      showToast('주기 기록을 삭제했어요');
+      await loadCycleCaches();
+      renderCalGrid();
+      renderCycle();
+    };
+  });
 }
 
 // ---------- Medical profile (conditions / medications / supplements) ----------
 setupSingleSelect('med-freq');
+
+function setupToggleForm(btnId, fieldsId, label='+ 추가'){
+  document.getElementById(btnId).onclick = ()=>{
+    const el = document.getElementById(fieldsId);
+    const isHidden = el.style.display === 'none';
+    el.style.display = isHidden ? 'block' : 'none';
+    document.getElementById(btnId).textContent = isHidden ? '접기' : label;
+  };
+}
+function collapseForm(btnId, fieldsId, label='+ 추가'){
+  document.getElementById(fieldsId).style.display = 'none';
+  document.getElementById(btnId).textContent = label;
+}
+setupToggleForm('cond-toggle-form','cond-form-fields');
+setupToggleForm('med-toggle-form','med-form-fields');
+setupToggleForm('supp-toggle-form','supp-form-fields');
 
 document.getElementById('cond-add').onclick = async ()=>{
   const name = document.getElementById('cond-name').value.trim();
@@ -967,6 +1500,7 @@ document.getElementById('cond-add').onclick = async ()=>{
   if(!id) return;
   document.getElementById('cond-name').value=''; document.getElementById('cond-note').value='';
   showToast('지병이 등록됐어요');
+  collapseForm('cond-toggle-form','cond-form-fields');
   renderMedicalProfile();
 };
 
@@ -981,17 +1515,23 @@ document.getElementById('med-add').onclick = async ()=>{
   document.getElementById('med-name').value=''; document.getElementById('med-dose').value=''; document.getElementById('med-note').value='';
   $$('#med-freq .selected').forEach(b=>b.classList.remove('selected'));
   showToast('약물이 등록됐어요');
+  collapseForm('med-toggle-form','med-form-fields');
   renderMedicalProfile();
 };
 
+setupSingleSelect('supp-freq');
 document.getElementById('supp-add').onclick = async ()=>{
   const name = document.getElementById('supp-name').value.trim();
   if(!name){ showToast('영양제 이름을 입력해주세요'); return; }
   const dose = document.getElementById('supp-dose').value.trim();
-  const id = await saveRecord('supplements', { name, dose });
+  const freq = getSelected('supp-freq')[0] || '미기재';
+  const note = document.getElementById('supp-note').value.trim();
+  const id = await saveRecord('supplements', { name, dose, freq, note });
   if(!id) return;
-  document.getElementById('supp-name').value=''; document.getElementById('supp-dose').value='';
+  document.getElementById('supp-name').value=''; document.getElementById('supp-dose').value=''; document.getElementById('supp-note').value='';
+  $$('#supp-freq .selected').forEach(b=>b.classList.remove('selected'));
   showToast('영양제가 등록됐어요');
+  collapseForm('supp-toggle-form','supp-form-fields');
   renderMedicalProfile();
 };
 
@@ -1011,17 +1551,173 @@ function renderDeletableList(containerId, items, col, renderItem){
   });
 }
 
+function fieldEditorHTML(fields, item){
+  return fields.map(f=>{
+    if(f.type==='select'){
+      return `<div class="field-label" style="margin-top:8px;">${f.label}</div>
+        <select data-field="${f.key}" style="width:100%;border:1px solid #E4DEF7;border-radius:12px;padding:8px 10px;font-size:13px;font-family:inherit;background:white;">
+          ${f.options.map(o=>`<option value="${o}" ${item[f.key]===o?'selected':''}>${o}</option>`).join('')}
+        </select>`;
+    }
+    const val = (item[f.key]||'').toString().replace(/"/g,'&quot;');
+    return `<div class="field-label" style="margin-top:8px;">${f.label}</div>
+      <input type="text" data-field="${f.key}" value="${val}" style="width:100%;border:1px solid #E4DEF7;border-radius:12px;padding:8px 10px;font-size:13px;font-family:inherit;">`;
+  }).join('');
+}
+
+function renderEditableList(containerId, items, col, fields, displayFn){
+  const el = document.getElementById(containerId);
+  if(items.length===0){ el.innerHTML = `<div class="empty">등록된 항목 없음</div>`; return; }
+  el.innerHTML = items.map(it=>`
+    <div class="record" data-record-id="${it._id}">
+      <div class="record-view" style="display:flex;justify-content:space-between;align-items:center;">
+        <div>${displayFn(it)}</div>
+        <div style="display:flex;gap:6px;flex:0 0 auto;">
+          <button class="option-btn edit-btn" style="padding:4px 10px;font-size:11px;">수정</button>
+          <button class="option-btn del-btn" style="padding:4px 10px;font-size:11px;color:#C24870;">삭제</button>
+        </div>
+      </div>
+      <div class="record-edit" style="display:none;">
+        ${fieldEditorHTML(fields, it)}
+        <div style="display:flex;gap:6px;margin-top:10px;">
+          <button class="btn-primary save-edit-btn" style="flex:1;padding:8px;">저장</button>
+          <button class="btn-ghost cancel-edit-btn" style="flex:0 0 auto;">취소</button>
+        </div>
+      </div>
+    </div>`).join('');
+
+  $$('.record', el).forEach(row=>{
+    const id = row.dataset.recordId;
+    const item = items.find(i=>i._id===id);
+    row.querySelector('.edit-btn').onclick = ()=>{
+      row.querySelector('.record-view').style.display='none';
+      row.querySelector('.record-edit').style.display='block';
+    };
+    row.querySelector('.cancel-edit-btn').onclick = ()=>{
+      row.querySelector('.record-view').style.display='flex';
+      row.querySelector('.record-edit').style.display='none';
+    };
+    row.querySelector('.del-btn').onclick = async ()=>{
+      await deleteRecord(col, id);
+      renderMedicalProfile();
+    };
+    row.querySelector('.save-edit-btn').onclick = async ()=>{
+      const { _id, ...rest } = item;
+      const updated = { ...rest };
+      $$('[data-field]', row).forEach(inp=>{ updated[inp.dataset.field] = inp.value.trim(); });
+      const ok = await updateRecord(col, id, updated);
+      if(ok){ showToast('수정됐어요'); renderMedicalProfile(); }
+    };
+  });
+}
+
+const MED_FREQ_OPTIONS = ['1일 1회 아침','1일 1회 저녁','1일 2회','1일 3회','필요시 복용','주 1회'];
+
 async function renderMedicalProfile(){
   const [conditions, meds, supps] = await Promise.all([
     listRecords('medicalConditions'), listRecords('medications'), listRecords('supplements')
   ]);
-  renderDeletableList('conditionList', conditions, 'medicalConditions',
+  renderEditableList('conditionList', conditions, 'medicalConditions',
+    [{key:'name',label:'진단명'},{key:'note',label:'메모'}],
     it=>`<b>${it.name}</b>${it.note? ` <span style="color:var(--ink-soft);font-size:12px;">· ${it.note}</span>`:''}`);
-  renderDeletableList('medList', meds, 'medications',
+  renderEditableList('medList', meds, 'medications',
+    [{key:'name',label:'약 이름'},{key:'dose',label:'용량'},
+     {key:'freq',label:'복용 주기', type:'select', options:MED_FREQ_OPTIONS},
+     {key:'note',label:'메모'}],
     it=>`<b>${it.name}</b> <span style="color:var(--ink-soft);font-size:12px;">${it.dose||''} · ${it.freq||''}${it.note? ' · '+it.note:''}</span>`);
-  renderDeletableList('suppList', supps, 'supplements',
-    it=>`<b>${it.name}</b> <span style="color:var(--ink-soft);font-size:12px;">${it.dose||''}</span>`);
+  renderEditableList('suppList', supps, 'supplements',
+    [{key:'name',label:'이름'},{key:'dose',label:'용량'},
+     {key:'freq',label:'복용 주기', type:'select', options:MED_FREQ_OPTIONS},
+     {key:'note',label:'메모'}],
+    it=>`<b>${it.name}</b> <span style="color:var(--ink-soft);font-size:12px;">${it.dose||''} · ${it.freq||''}${it.note? ' · '+it.note:''}</span>`);
+  medCalMain.populate(meds, supps);
 }
+
+// ---------- Medication adherence calendar (주 단위, 약마다 한 줄) ----------
+function freqSlots(freq){
+  if(freq==='1일 1회 아침') return ['AM'];
+  if(freq==='1일 1회 저녁') return ['PM'];
+  if(freq==='1일 2회' || freq==='1일 3회') return ['AM','PM'];
+  return [];
+}
+const MED_COLORS = ['#FF7FA6','#5B9BD5','#8C7AE6','#4FBF9F','#F0A868','#B07FA8','#5FBF7F','#E06C75'];
+
+function createMedCalController(suffix){
+  const ids = { label:'medCalLabel'+suffix, grid:'medCalGrid'+suffix, noneNote:'medCalNoneNote'+suffix, prev:'medCalPrev'+suffix, next:'medCalNext'+suffix };
+  let items = [];
+  let weekStart = mondayOf(todayStr());
+
+  function populate(meds, supps){
+    const all = [
+      ...meds.map(m=>({ key:`medications:${m.name}`, name:m.name, freq:m.freq })),
+      ...supps.map(s=>({ key:`supplements:${s.name}`, name:s.name, freq:s.freq }))
+    ];
+    items = all.filter(it=>freqSlots(it.freq).length>0).map((it,i)=>({ ...it, color: MED_COLORS[i % MED_COLORS.length] }));
+
+    if(items.length===0){
+      document.getElementById(ids.noneNote).style.display = 'block';
+      document.getElementById(ids.grid).innerHTML = '';
+      return;
+    }
+    document.getElementById(ids.noneNote).style.display = 'none';
+    render();
+  }
+
+  async function render(){
+    if(items.length===0) return;
+    const s = new Date(weekStart);
+    const e = new Date(weekStart); e.setDate(e.getDate()+6);
+    document.getElementById(ids.label).textContent = `${s.getMonth()+1}/${s.getDate()}(월)~${e.getMonth()+1}/${e.getDate()}(일)`;
+
+    const taken = await listRecords('medicationTaken');
+    const weekDates = Array.from({length:7}, (_,i)=>addDays(weekStart, i));
+
+    const headerCells = weekDates.map(dateStr=>{
+      const d = new Date(dateStr);
+      return `<th>${WEEKDAY_KR[d.getDay()]}<br>${d.getDate()}</th>`;
+    }).join('');
+
+    function sectionRows(period){
+      const rows = items.filter(it=>freqSlots(it.freq).includes(period));
+      if(rows.length===0) return '';
+      let html = `<tr class="section-row"><td colspan="8">${period==='AM'?'오전':'오후'}</td></tr>`;
+      rows.forEach(it=>{
+        html += `<tr class="med-row"><td class="row-label" style="color:${it.color};">${it.name}</td>`;
+        weekDates.forEach(dateStr=>{
+          const isTaken = taken.some(t=>t.medKey===it.key && t.date===dateStr && t.period===period);
+          html += `<td><button class="adh-cell" data-key="${it.key}" data-date="${dateStr}" data-period="${period}" style="border-color:${it.color};background:${isTaken?it.color:'white'};"></button></td>`;
+        });
+        html += `</tr>`;
+      });
+      return html;
+    }
+
+    document.getElementById(ids.grid).innerHTML = `
+      <div style="overflow-x:auto;">
+        <table class="adherence-table">
+          <thead><tr><th></th>${headerCells}</tr></thead>
+          <tbody>${sectionRows('AM')}${sectionRows('PM')}</tbody>
+        </table>
+      </div>`;
+  }
+
+  document.getElementById(ids.grid).addEventListener('click', async e=>{
+    const btn = e.target.closest('.adh-cell');
+    if(!btn) return;
+    const key = btn.dataset.key, date = btn.dataset.date, period = btn.dataset.period;
+    const taken = await listRecords('medicationTaken');
+    const rec = taken.find(t=>t.medKey===key && t.date===date && t.period===period);
+    if(rec) await deleteRecord('medicationTaken', rec._id);
+    else await saveRecord('medicationTaken', { medKey:key, period }, date);
+    render();
+  });
+  document.getElementById(ids.prev).onclick = ()=>{ weekStart = addDays(weekStart, -7); render(); };
+  document.getElementById(ids.next).onclick = ()=>{ weekStart = addDays(weekStart, 7); render(); };
+
+  return { populate };
+}
+
+const medCalMain = createMedCalController('');
 
 // ---------- Body composition & checkup ----------
 document.getElementById('body-photo').addEventListener('change', async (e)=>{
@@ -1069,6 +1765,13 @@ document.getElementById('body-photo').addEventListener('change', async (e)=>{
   }
 });
 
+document.getElementById('bc-toggle-form').onclick = ()=>{
+  const card = document.getElementById('bc-form-card');
+  const isHidden = card.style.display === 'none';
+  card.style.display = isHidden ? 'block' : 'none';
+  document.getElementById('bc-toggle-form').textContent = isHidden ? '접기' : '+ 추가';
+};
+
 document.getElementById('bc-save').onclick = async ()=>{
   const weight = document.getElementById('bc-weight').value;
   const muscle = document.getElementById('bc-muscle').value;
@@ -1088,6 +1791,8 @@ document.getElementById('bc-save').onclick = async ()=>{
   document.getElementById('body-photo').value='';
   document.getElementById('body-photo-status').style.display='none';
   showToast('체성분 기록 저장됐어요');
+  document.getElementById('bc-form-card').style.display = 'none';
+  document.getElementById('bc-toggle-form').textContent = '+ 추가';
   renderBodyTrend();
 };
 
@@ -1125,9 +1830,89 @@ async function renderCheckupList(){
     it=>`<b>${it.name}</b> <span style="color:var(--ink-soft);font-size:12px;">${it.value} · ${fmtDateWithDay(it.date)}</span>`);
 }
 
+// ---------- 체형 변화 사진 ----------
+setupToggleForm('photo-toggle-form','photo-form-fields');
+(function initPhotoDate(){
+  const el = document.getElementById('photo-date');
+  if(el) el.value = activeDate;
+})();
+
+function resizeImageToBase64(file, maxWidth=480, quality=0.7){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const scale = Math.min(1, maxWidth/img.width);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width*scale);
+        canvas.height = Math.round(img.height*scale);
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+      img.src = reader.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+document.getElementById('photo-save').onclick = async ()=>{
+  const date = document.getElementById('photo-date').value;
+  const file = document.getElementById('photo-file').files[0];
+  const note = document.getElementById('photo-note').value.trim();
+  if(!date){ showToast('날짜를 선택해주세요'); return; }
+  if(!file){ showToast('사진을 선택해주세요'); return; }
+
+  const btn = document.getElementById('photo-save');
+  btn.disabled = true; btn.textContent = '저장 중…';
+  try{
+    const image = await resizeImageToBase64(file);
+    const id = await saveRecord('bodyPhotos', { image, note }, date);
+    if(id){
+      showToast('사진이 저장됐어요');
+      document.getElementById('photo-file').value='';
+      document.getElementById('photo-note').value='';
+      collapseForm('photo-toggle-form','photo-form-fields');
+      renderBodyPhotoGallery();
+    }
+  }catch(e){
+    console.error(e);
+    showToast('⚠️ 사진 처리에 실패했어요');
+  }
+  btn.disabled = false; btn.textContent = '사진 추가';
+};
+
+async function renderBodyPhotoGallery(){
+  const el = document.getElementById('bodyPhotoGallery');
+  const photos = (await listRecords('bodyPhotos')).sort((a,b)=>a.date.localeCompare(b.date));
+  if(photos.length===0){ el.innerHTML = '<div class="empty">아직 등록된 사진이 없어요</div>'; return; }
+
+  el.innerHTML = `<div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:6px;">
+    ${photos.map(p=>`
+      <div style="flex:0 0 auto; text-align:center; width:96px;">
+        <img src="${p.image}" data-full="${p.image}" class="body-photo-thumb"
+             style="width:96px; height:120px; object-fit:cover; border-radius:12px; cursor:pointer; box-shadow:var(--shadow);">
+        <div style="font-size:11px; color:var(--ink-soft); margin-top:4px;">${fmtDateWithDay(p.date)}</div>
+        ${p.note? `<div style="font-size:10px; color:var(--ink-soft);">${p.note}</div>`:''}
+      </div>`).join('')}
+  </div>
+  <div class="hint" style="margin-top:8px;">사진을 탭하면 새 탭에서 크게 볼 수 있어요. 날짜순으로 나열돼서 변화를 쭉 훑어보기 좋아요.</div>`;
+
+  $$('.body-photo-thumb', el).forEach(img=>{
+    img.onclick = ()=>{
+      const w = window.open('');
+      if(w) w.document.write(`<img src="${img.dataset.full}" style="max-width:100%;">`);
+    };
+  });
+}
+
 async function renderBodyPanel(){
   await renderBodyTrend();
   await renderCheckupList();
+  await renderBodyPhotoGallery();
 }
 
 // ---------- Exercise & effect estimation ----------
@@ -1160,17 +1945,22 @@ async function getLatestWeight(){
   document.getElementById('ex-bodyweight-note').textContent = w
     ? `최근 기록된 체중(${w}kg)을 기준으로 소모 칼로리를 추정해요. 체성분 탭에서 갱신할 수 있어요.`
     : `체중 기록이 없어서 칼로리 추정이 어려워요. 체성분 탭에서 체중을 먼저 기록해주세요.`;
+  const t = new Date();
+  document.getElementById('ex-time').value = `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
 })();
 
 document.getElementById('ex-save').onclick = async ()=>{
-  const type = getSelected('ex-type')[0];
+  const customType = document.getElementById('ex-type-custom').value.trim();
+  const type = customType || getSelected('ex-type')[0];
   const intensity = getSelected('ex-intensity')[0] || '보통';
   const duration = parseFloat(document.getElementById('ex-duration').value);
-  if(!type){ showToast('운동 종류를 선택해주세요'); return; }
+  const time = document.getElementById('ex-time').value;
+  const note = document.getElementById('ex-note').value.trim();
+  if(!type){ showToast('운동 종류를 선택하거나 입력해주세요'); return; }
   if(!duration || duration<=0){ showToast('운동 시간을 입력해주세요'); return; }
 
   const weight = await getLatestWeight();
-  const met = MET_TABLE[type][intensity];
+  const met = (MET_TABLE[type] || MET_TABLE["기타"])[intensity];
   const hours = duration/60;
   const estKcal = weight ? Math.round(met * weight * hours) : null;
   const estFatG = estKcal ? Math.round((estKcal/7700)*1000) : null;
@@ -1183,7 +1973,7 @@ document.getElementById('ex-save').onclick = async ()=>{
     if(sets && reps && avgWeight) volume = sets*reps*avgWeight;
   }
 
-  const id = await saveRecord('exerciseLogs', { type, intensity, duration, estKcal, estFatG, sets, reps, avgWeight, volume }, activeDate);
+  const id = await saveRecord('exerciseLogs', { type, intensity, duration, time, note, estKcal, estFatG, sets, reps, avgWeight, volume }, activeDate);
   if(!id) return;
 
   const resultEl = document.getElementById('ex-effect-result');
@@ -1196,10 +1986,84 @@ document.getElementById('ex-save').onclick = async ()=>{
     : `<div class="hint">체중 기록이 없어서 칼로리 추정을 할 수 없었어요. 기록은 저장됐어요.</div>`;
 
   document.getElementById('ex-duration').value='';
+  document.getElementById('ex-note').value='';
+  document.getElementById('ex-type-custom').value='';
   ['ex-sets','ex-reps','ex-weight'].forEach(id=>document.getElementById(id).value='');
-  showToast('운동 기록 저장됐어요');
+  showToast('운동 기록이 추가됐어요');
   renderVolumeTrend();
+  renderExerciseTodayList();
+  renderExerciseGoalDashboard();
 };
+
+async function renderExerciseTodayList(){
+  const el = document.getElementById('exerciseTodayList');
+  const all = await listRecords('exerciseLogs');
+  const todays = all.filter(l=>l.date===activeDate).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  if(todays.length===0){ el.innerHTML = '<div class="empty">오늘 기록된 운동이 없어요</div>'; return; }
+  el.innerHTML = todays.map(l=>`
+    <div class="record">
+      <div class="record-top">
+        <span class="record-date">${l.time? `🕒 ${l.time} · `:''}${l.type}</span>
+        ${l.estKcal? `<span class="stress-badge" style="background:var(--pink);color:#C24870;">${l.estKcal}kcal</span>`:''}
+      </div>
+      <div class="chips">
+        <span class="chip">${l.duration}분 · ${l.intensity}</span>
+        ${l.volume? `<span class="chip">볼륨 ${l.volume.toLocaleString()}kg</span>`:''}
+      </div>
+      ${l.note? `<div class="hint" style="margin-top:6px;">${l.note}</div>`:''}
+    </div>`).join('');
+}
+
+const CARDIO_EXERCISE_TYPES = ['수영','러닝','걷기','홈트','요가/필라테스','기타'];
+const WEEKLY_AEROBIC_GOAL_MIN = 150;
+const WEEKLY_STRENGTH_GOAL_SESSIONS = 2;
+const EXERCISE_SUGGESTIONS = {
+  strength: ['스쿼트','플랭크','런지','푸시업'],
+  cardio: ['빠르게 걷기','계단 오르기','줄넘기']
+};
+
+async function renderExerciseGoalDashboard(){
+  const el = document.getElementById('exerciseGoalDashboard');
+  const ws = mondayOf(activeDate);
+  const we = addDays(ws, 6);
+  const all = await listRecords('exerciseLogs');
+  const thisWeek = all.filter(l=> l.date>=ws && l.date<=we);
+
+  const aerobicMin = thisWeek.filter(l=>l.type!=='헬스(웨이트)').reduce((s,l)=>s+(l.duration||0),0);
+  const strengthDays = new Set(thisWeek.filter(l=>l.type==='헬스(웨이트)').map(l=>l.date)).size;
+
+  const aerobicPct = Math.min(100, Math.round(aerobicMin/WEEKLY_AEROBIC_GOAL_MIN*100));
+  const strengthPct = Math.min(100, Math.round(strengthDays/WEEKLY_STRENGTH_GOAL_SESSIONS*100));
+
+  function bar(label, current, goal, pct, color){
+    return `<div style="margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink-soft);margin-bottom:3px;">
+        <span>${label}</span><span>${current} / ${goal}</span>
+      </div>
+      <div style="background:#F1EDFA;border-radius:999px;height:8px;overflow:hidden;">
+        <div style="width:${pct}%;background:${color};height:100%;"></div>
+      </div>
+    </div>`;
+  }
+
+  let suggestion = '';
+  if(aerobicPct>=100 && strengthPct<100){
+    const pick = EXERCISE_SUGGESTIONS.strength[Math.floor(Math.random()*EXERCISE_SUGGESTIONS.strength.length)];
+    suggestion = `일일 유산소는 채웠고, 이번 주 근력운동이 ${WEEKLY_STRENGTH_GOAL_SESSIONS - strengthDays}회 더 필요해요. <b>${pick}</b> 어때요? <a href="https://www.youtube.com/results?search_query=${encodeURIComponent(pick+' 운동법')}" target="_blank" style="color:var(--sky-deep);font-weight:700;">▶ ${pick} 영상 보러가기</a>`;
+  } else if(aerobicPct<100){
+    const remain = WEEKLY_AEROBIC_GOAL_MIN - aerobicMin;
+    const pick = EXERCISE_SUGGESTIONS.cardio[Math.floor(Math.random()*EXERCISE_SUGGESTIONS.cardio.length)];
+    suggestion = `이번 주 유산소가 ${remain}분 더 필요해요. <b>${pick}</b>로 채워보는 건 어때요? <a href="https://www.youtube.com/results?search_query=${encodeURIComponent(pick)}" target="_blank" style="color:var(--sky-deep);font-weight:700;">▶ 방법 보러가기</a>`;
+  } else {
+    suggestion = '이번 주 목표를 모두 채웠어요! 오늘은 가볍게 스트레칭 정도로 마무리해도 충분해요 💪';
+  }
+
+  el.innerHTML = `
+    ${bar('유산소 (분/주)', aerobicMin, WEEKLY_AEROBIC_GOAL_MIN, aerobicPct, 'var(--sky-deep)')}
+    ${bar('근력운동 (일/주)', strengthDays, WEEKLY_STRENGTH_GOAL_SESSIONS, strengthPct, 'var(--lavender-deep)')}
+    <div class="hint" style="margin-top:2px;">${suggestion}</div>
+  `;
+}
 
 async function renderVolumeTrend(){
   const logs = (await listRecords('exerciseLogs')).filter(l=>l.type==='헬스(웨이트)' && l.volume).sort((a,b)=>a.savedAt-b.savedAt);
@@ -1209,10 +2073,8 @@ async function renderVolumeTrend(){
   el.innerHTML = miniBars(volumes, 'kg (세트×횟수×중량)', 'var(--lavender-deep)');
 }
 
-// ---------- Weekly exercise plan (주 단위, 하루 다중 운동, 커스텀 입력, 이전 주 복사) ----------
+// ---------- Exercise templates (종목별 반복 등록) ----------
 const PLAN_DAY_LABELS = ['월','화','수','목','금','토','일'];
-const PLAN_PRESETS = ['홈트','헬스(웨이트)','수영','러닝','걷기','요가/필라테스'];
-const planGrid = document.getElementById('weeklyPlanGrid');
 
 function mondayOf(dateStr){
   const d = new Date(dateStr);
@@ -1223,7 +2085,6 @@ function mondayOf(dateStr){
 }
 
 let planWeekStart = mondayOf(todayStr());
-let planDraft = { 월:[], 화:[], 수:[], 목:[], 금:[], 토:[], 일:[] };
 
 function planWeekLabel(weekStart){
   const s = new Date(weekStart);
@@ -1231,95 +2092,137 @@ function planWeekLabel(weekStart){
   return `${s.getMonth()+1}/${s.getDate()}(월)~${e.getMonth()+1}/${e.getDate()}(일)`;
 }
 
-function renderPlanGrid(){
-  planGrid.innerHTML = '';
-  PLAN_DAY_LABELS.forEach((day, i)=>{
-    const dayDate = addDays(planWeekStart, i);
-    const d = new Date(dayDate);
-    const selected = planDraft[day] || [];
-    const wrap = document.createElement('div');
-    wrap.style.cssText = 'margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #F1EDFA;';
-    wrap.innerHTML = `
-      <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:6px;">${day} <span style="font-weight:400;color:var(--ink-soft);font-size:11px;">${d.getMonth()+1}/${d.getDate()}</span></div>
-      <div class="option-grid plan-preset-row" data-day="${day}">
-        ${PLAN_PRESETS.map(p=>`<div class="option-btn ${selected.includes(p)?'selected':''}" data-v="${p}">${p}</div>`).join('')}
+setupSingleSelect('tmpl-type');
+setupMultiSelect('tmpl-days');
+setupSingleSelect('tmpl-timeofday');
+setupToggleForm('tmpl-toggle-form','tmpl-form-fields');
+
+document.getElementById('tmpl-add').onclick = async ()=>{
+  const customType = document.getElementById('tmpl-type-custom').value.trim();
+  const name = customType || getSelected('tmpl-type')[0];
+  const days = getSelected('tmpl-days');
+  const timeOfDay = getSelected('tmpl-timeofday')[0] || '';
+  const duration = parseFloat(document.getElementById('tmpl-duration').value) || null;
+  if(!name){ showToast('종목을 선택하거나 입력해주세요'); return; }
+  if(days.length===0){ showToast('요일을 하나 이상 선택해주세요'); return; }
+  const id = await saveRecord('exerciseTemplates', { name, days, timeOfDay, duration });
+  if(!id) return;
+  document.getElementById('tmpl-type-custom').value='';
+  document.getElementById('tmpl-duration').value='';
+  $$('#tmpl-type .selected, #tmpl-days .selected, #tmpl-timeofday .selected').forEach(b=>b.classList.remove('selected'));
+  showToast('반복 종목이 등록됐어요');
+  collapseForm('tmpl-toggle-form','tmpl-form-fields');
+  renderExerciseTemplateList();
+  renderWeeklySchedule();
+};
+
+async function renderExerciseTemplateList(){
+  const el = document.getElementById('exerciseTemplateList');
+  const templates = await listRecords('exerciseTemplates');
+  if(templates.length===0){ el.innerHTML = '<div class="empty">등록된 반복 종목이 없어요</div>'; return; }
+  el.innerHTML = templates.map(t=>`
+    <div class="record" style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <b>${t.name}</b>
+        <span style="color:var(--ink-soft);font-size:12px;"> · ${(t.days||[]).join('·')} · ${t.timeOfDay||''}${t.duration? ' · '+t.duration+'분':''}</span>
       </div>
-      <div class="chips plan-custom-chips" data-day="${day}" style="margin-top:6px;">
-        ${selected.filter(v=>!PLAN_PRESETS.includes(v)).map(v=>`<span class="chip flag" data-custom="${v}">${v} ×</span>`).join('')}
-      </div>
-      <div style="display:flex;gap:6px;margin-top:6px;">
-        <input type="text" class="plan-custom-input" data-day="${day}" placeholder="다른 운동 직접 입력" style="flex:1;font-size:12.5px;padding:8px 12px;">
-        <button class="btn-ghost plan-custom-add" data-day="${day}" style="flex:0 0 auto;">추가</button>
-      </div>`;
-    planGrid.appendChild(wrap);
+      <button class="option-btn" data-del="${t._id}" style="flex:0 0 auto;color:#C24870;">삭제</button>
+    </div>`).join('');
+  $$('[data-del]', el).forEach(btn=>{
+    btn.onclick = async ()=>{
+      await deleteRecord('exerciseTemplates', btn.dataset.del);
+      renderExerciseTemplateList();
+      renderWeeklySchedule();
+    };
   });
 }
 
-planGrid.addEventListener('click', (e)=>{
-  const presetBtn = e.target.closest('.plan-preset-row .option-btn');
-  if(presetBtn){
-    const day = presetBtn.closest('.plan-preset-row').dataset.day;
-    const v = presetBtn.dataset.v;
-    const arr = planDraft[day];
-    if(arr.includes(v)) planDraft[day] = arr.filter(x=>x!==v);
-    else arr.push(v);
-    renderPlanGrid();
+async function renderWeeklySchedule(){
+  document.getElementById('planWeekLabel').textContent = planWeekLabel(planWeekStart);
+  const templates = await listRecords('exerciseTemplates');
+  const grid = document.getElementById('weeklyPlanGrid');
+  const noneNote = document.getElementById('weeklyPlanNoneNote');
+
+  if(templates.length===0){
+    grid.innerHTML = '';
+    noneNote.style.display = 'block';
     return;
   }
-  const customChip = e.target.closest('.plan-custom-chips .chip');
-  if(customChip){
-    const day = customChip.closest('.plan-custom-chips').dataset.day;
-    const v = customChip.dataset.custom;
-    planDraft[day] = planDraft[day].filter(x=>x!==v);
-    renderPlanGrid();
-    return;
+  noneNote.style.display = 'none';
+
+  const colored = templates.map((t,i)=>({ ...t, color: MED_COLORS[i % MED_COLORS.length] }));
+  const weekDates = Array.from({length:7}, (_,i)=>addDays(planWeekStart, i));
+  const taken = await listRecords('exerciseTaken');
+
+  const headerCells = weekDates.map(dateStr=>{
+    const d = new Date(dateStr);
+    return `<th>${WEEKDAY_KR[d.getDay()]}<br>${d.getDate()}</th>`;
+  }).join('');
+
+  function sectionRows(section){
+    const rows = colored.filter(t=> section==='AM' ? t.timeOfDay==='오전' : (t.timeOfDay==='오후' || t.timeOfDay==='저녁' || !t.timeOfDay));
+    if(rows.length===0) return '';
+    let html = `<tr class="section-row"><td colspan="8">${section==='AM'?'오전':'오후'}</td></tr>`;
+    rows.forEach(t=>{
+      html += `<tr class="med-row"><td class="row-label" style="color:${t.color};">${t.name}</td>`;
+      weekDates.forEach((dateStr, i)=>{
+        const dayLabel = PLAN_DAY_LABELS[i];
+        const applies = (t.days||[]).includes(dayLabel);
+        if(!applies){ html += `<td></td>`; return; }
+        const isDone = taken.some(x=>x.templateKey===t._id && x.date===dateStr);
+        html += `<td><button class="adh-cell" data-template="${t._id}" data-date="${dateStr}" style="border-color:${t.color};background:${isDone?t.color:'white'};"></button></td>`;
+      });
+      html += `</tr>`;
+    });
+    return html;
   }
-  const addBtn = e.target.closest('.plan-custom-add');
-  if(addBtn){
-    const day = addBtn.dataset.day;
-    const input = planGrid.querySelector(`.plan-custom-input[data-day="${day}"]`);
-    const v = input.value.trim();
-    if(v && !planDraft[day].includes(v)) planDraft[day].push(v);
-    renderPlanGrid();
-  }
+
+  grid.innerHTML = `
+    <div style="overflow-x:auto;">
+      <table class="adherence-table">
+        <thead><tr><th></th>${headerCells}</tr></thead>
+        <tbody>${sectionRows('AM')}${sectionRows('PM')}</tbody>
+      </table>
+    </div>`;
+}
+
+document.getElementById('weeklyPlanGrid').addEventListener('click', async e=>{
+  const btn = e.target.closest('.adh-cell');
+  if(!btn) return;
+  const templateKey = btn.dataset.template, date = btn.dataset.date;
+  const taken = await listRecords('exerciseTaken');
+  const rec = taken.find(x=>x.templateKey===templateKey && x.date===date);
+  if(rec) await deleteRecord('exerciseTaken', rec._id);
+  else await saveRecord('exerciseTaken', { templateKey }, date);
+  renderWeeklySchedule();
 });
 
-document.getElementById('planWeekPrev').onclick = async ()=>{
+document.getElementById('planWeekPrev').onclick = ()=>{
   planWeekStart = addDays(planWeekStart, -7);
-  await loadWeeklyPlan();
+  renderWeeklySchedule();
 };
-document.getElementById('planWeekNext').onclick = async ()=>{
+document.getElementById('planWeekNext').onclick = ()=>{
   planWeekStart = addDays(planWeekStart, 7);
-  await loadWeeklyPlan();
+  renderWeeklySchedule();
+};
+document.getElementById('plan-copy-prev').onclick = ()=>{
+  showToast('반복 종목은 매주 자동으로 이어져요. 요일별 스케줄을 새로고침했어요');
+  renderWeeklySchedule();
 };
 
-document.getElementById('plan-copy-prev').onclick = async ()=>{
-  const prevWeekStart = addDays(planWeekStart, -7);
-  const plans = await listRecords('weeklyExercisePlan');
-  const prev = plans.find(p=>p.weekStart===prevWeekStart);
-  if(!prev){ showToast('지난 주 계획이 없어요'); return; }
-  planDraft = JSON.parse(JSON.stringify(prev.plan));
-  renderPlanGrid();
-  showToast('지난 주 계획을 불러왔어요. 저장을 눌러야 반영돼요');
-};
-
-document.getElementById('plan-save').onclick = async ()=>{
-  const id = await saveRecord('weeklyExercisePlan', { weekStart: planWeekStart, plan: planDraft }, planWeekStart);
-  if(!id) return;
-  showToast('이번 주 운동 계획이 저장됐어요');
-};
-
-async function loadWeeklyPlan(){
-  document.getElementById('planWeekLabel').textContent = planWeekLabel(planWeekStart);
-  const plans = await listRecords('weeklyExercisePlan');
-  const existing = plans.find(p=>p.weekStart===planWeekStart);
-  planDraft = existing ? JSON.parse(JSON.stringify(existing.plan)) : { 월:[], 화:[], 수:[], 목:[], 금:[], 토:[], 일:[] };
-  renderPlanGrid();
+async function getTodaysExercisePlan(){
+  const templates = await listRecords('exerciseTemplates');
+  const dow = new Date(activeDate).getDay(); // 0=일
+  const dayLabel = PLAN_DAY_LABELS[(dow+6)%7]; // 월=0 매핑
+  return templates.filter(t=>(t.days||[]).includes(dayLabel)).map(t=>t.name);
 }
 
 async function renderExercisePanel(){
   await renderVolumeTrend();
-  await loadWeeklyPlan();
+  await renderExerciseTemplateList();
+  await renderWeeklySchedule();
+  await renderExerciseTodayList();
+  await renderExerciseGoalDashboard();
 }
 
 // ---------- Diet: today's macro target + meal logging ----------
@@ -1331,16 +2234,6 @@ const MACRO_RATIOS = {
   strength: { label:'근력 운동일', carb:0.40, protein:0.35, fat:0.25, activityFactor:1.55 }
 };
 const CARDIO_TYPES = ['수영','러닝','걷기','요가/필라테스'];
-
-async function getTodaysExercisePlan(){
-  const ws = mondayOf(activeDate);
-  const plans = await listRecords('weeklyExercisePlan');
-  const plan = plans.find(p=>p.weekStart===ws);
-  if(!plan) return [];
-  const dow = new Date(activeDate).getDay(); // 0=일
-  const dayLabel = PLAN_DAY_LABELS[(dow+6)%7]; // 월=0 매핑
-  return plan.plan[dayLabel] || [];
-}
 
 async function renderDietTarget(){
   const el = document.getElementById('dietTarget');
@@ -1430,13 +2323,43 @@ document.getElementById('meal-photo').addEventListener('change', async (e)=>{
   }
 });
 
+document.getElementById('meal-fatsecret-link').onclick = async ()=>{
+  const name = document.getElementById('meal-name').value.trim();
+  if(!name){ showToast('음식 이름을 먼저 입력해주세요'); return; }
+  const btn = document.getElementById('meal-fatsecret-link');
+  btn.disabled = true; btn.textContent = '계산 중…';
+  try{
+    const raw = await callClaude([{role:'user', content:
+      `"${name}"의 예상 영양소를 계산해줘. 수량이 적혀 있으면(예: 계란 3개) 개당 표준 영양소 × 수량으로 누적 계산해줘. 반드시 아래 JSON만 출력해:
+{"kcal": 숫자, "carb": 탄수화물그램, "protein": 단백질그램, "fat": 지방그램}`
+    }], "너는 정확한 JSON만 출력하는 영양소 계산기야. 한국 식품 기준 일반적인 표준값을 사용해.");
+    const parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    document.getElementById('meal-kcal').value = parsed.kcal ?? '';
+    document.getElementById('meal-carb').value = parsed.carb ?? '';
+    document.getElementById('meal-protein').value = parsed.protein ?? '';
+    document.getElementById('meal-fat').value = parsed.fat ?? '';
+    showToast('AI 추정치로 채웠어요. 확인 후 저장해주세요');
+  }catch(e){
+    console.error(e);
+    showToast('⚠️ 계산에 실패했어요. 직접 입력해주세요');
+  }
+  btn.disabled = false; btn.textContent = '🔍 확인';
+};
+
+(function initMealTime(){
+  const t = new Date();
+  const el = document.getElementById('meal-time');
+  if(el) el.value = `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+})();
+
 document.getElementById('meal-save').onclick = async ()=>{
   const mealType = getSelected('meal-type')[0];
   const name = document.getElementById('meal-name').value.trim();
+  const time = document.getElementById('meal-time').value;
   if(!mealType){ showToast('끼니를 선택해주세요'); return; }
   if(!name){ showToast('음식 이름을 입력해주세요'); return; }
   const record = {
-    mealType, name,
+    mealType, name, time,
     kcal: parseFloat(document.getElementById('meal-kcal').value) || 0,
     carb: parseFloat(document.getElementById('meal-carb').value) || 0,
     protein: parseFloat(document.getElementById('meal-protein').value) || 0,
@@ -1450,7 +2373,40 @@ document.getElementById('meal-save').onclick = async ()=>{
   $$('#meal-type .selected').forEach(b=>b.classList.remove('selected'));
   showToast('식사 기록 저장됐어요');
   renderDietSummary();
+  renderMealTimingAnalysis();
 };
+
+async function renderMealTimingAnalysis(){
+  const el = document.getElementById('mealTimingAnalysis');
+  const all = (await listRecords('mealLogs')).filter(m=>m.time);
+  if(all.length<3){ el.innerHTML = '<div class="empty">기록이 3건 이상 쌓이면 분석이 표시돼요</div>'; return; }
+
+  const byType = {아침:[], 점심:[], 저녁:[], 간식:[]};
+  all.forEach(m=>{ if(byType[m.mealType]) byType[m.mealType].push(m.time); });
+
+  function avgTime(times){
+    if(times.length===0) return null;
+    const mins = times.map(t=>{ const [h,m]=t.split(':').map(Number); return h*60+m; });
+    const avg = Math.round(mins.reduce((a,b)=>a+b,0)/mins.length);
+    return `${String(Math.floor(avg/60)).padStart(2,'0')}:${String(avg%60).padStart(2,'0')}`;
+  }
+
+  const lateNightCount = all.filter(m=>{
+    const [h] = m.time.split(':').map(Number);
+    return h>=21 || h<4;
+  }).length;
+  const lateNightPct = Math.round(lateNightCount/all.length*100);
+
+  const chips = Object.entries(byType).filter(([,v])=>v.length>0)
+    .map(([k,v])=>`<span class="chip">${k} 평균 ${avgTime(v)}</span>`).join('');
+
+  el.innerHTML = `
+    <div class="chips" style="margin-bottom:8px;">${chips}</div>
+    ${lateNightPct>=20
+      ? `<div class="hint">전체 식사 중 <b>${lateNightPct}%</b>가 밤 9시 이후예요. 늦은 식사가 잦으면 수면의 질이나 소화에 영향을 줄 수 있어요.</div>`
+      : `<div class="hint">늦은 시간대(21시 이후) 식사 비중이 ${lateNightPct}%로 낮은 편이에요.</div>`}
+  `;
+}
 
 async function renderDietSummary(){
   const el = document.getElementById('dietSummary');
@@ -1491,6 +2447,7 @@ async function renderDietSummary(){
 async function renderDietPanel(){
   await renderDietTarget();
   await renderDietSummary();
+  await renderMealTimingAnalysis();
 }
 
 // ---------- Conversational check-in ----------
@@ -1582,42 +2539,48 @@ ${transcript}`;
   catch(e){ parsed = {summaryKeywords:['요약 실패'], stressScore:5, overtimeWork:false, exercised:false, mealNote:'', sleepNote:'', flaggedSymptoms:[], oneLineSummary:raw.slice(0,50), painDetected:null, stressSignalsDetected:[], pmsSymptomsDetected:[]}; }
 
   const linkedModules = [];
+  const linkTasks = [];
 
   // 대화에서 통증이 감지되면 통증 기록에도 자동 반영
   if(parsed.painDetected && parsed.painDetected.regions && parsed.painDetected.regions.length){
-    const pid = await saveRecord('painRecords', {
-      type:'pain',
-      regions: parsed.painDetected.regions,
-      painType: '미선택(체크인 자동기록)',
-      quality: parsed.painDetected.quality || [],
-      intensity: parsed.painDetected.intensity || 5,
-      source: 'checkin-auto'
-    }, activeDate);
-    if(pid) linkedModules.push('🩹 통증 기록');
+    linkTasks.push(
+      saveRecord('painRecords', {
+        type:'pain',
+        regions: parsed.painDetected.regions,
+        painType: '미선택(체크인 자동기록)',
+        quality: parsed.painDetected.quality || [],
+        intensity: parsed.painDetected.intensity || 5,
+        source: 'checkin-auto'
+      }, activeDate).then(id=>{ if(id) linkedModules.push('🩹 통증 기록'); })
+    );
   }
 
   // 스트레스 신호로 매칭되는 게 있으면 스트레스 신호 탭에도 자동 반영
   if(parsed.stressSignalsDetected && parsed.stressSignalsDetected.length){
-    const sid = await saveRecord('stressSignals', {
-      type:'stress',
-      symptoms: parsed.stressSignalsDetected,
-      timing: '미기재',
-      duration: '미기재',
-      note: '오늘 체크인 대화에서 자동 연동됨',
-      source: 'checkin-auto'
-    }, activeDate);
-    if(sid) linkedModules.push('🧠 스트레스 신호');
+    linkTasks.push(
+      saveRecord('stressSignals', {
+        type:'stress',
+        symptoms: parsed.stressSignalsDetected,
+        timing: '미기재',
+        duration: '미기재',
+        note: '오늘 체크인 대화에서 자동 연동됨',
+        source: 'checkin-auto'
+      }, activeDate).then(id=>{ if(id) linkedModules.push('🧠 스트레스 신호'); })
+    );
   }
 
   // PMS/생리 증상 언급이 있으면 생리주기 탭에도 자동 반영
   if(parsed.pmsSymptomsDetected && parsed.pmsSymptomsDetected.length){
-    const mid = await saveRecord('pmsLogs', {
-      symptoms: parsed.pmsSymptomsDetected,
-      bbt: null,
-      source: 'checkin-auto'
-    }, activeDate);
-    if(mid) linkedModules.push('🌙 생리주기');
+    linkTasks.push(
+      saveRecord('pmsLogs', {
+        symptoms: parsed.pmsSymptomsDetected,
+        bbt: null,
+        source: 'checkin-auto'
+      }, activeDate).then(id=>{ if(id) linkedModules.push('🌙 생리주기'); })
+    );
   }
+
+  await Promise.all(linkTasks);
 
   const checkinId = await saveRecord('dailyCheckins', { type:'checkin', rawConversation:conversation, linkedModules, ...parsed }, activeDate);
   btn.disabled = false; btn.textContent = '대화 마치고 요약 저장';
@@ -1626,7 +2589,7 @@ ${transcript}`;
     // saveRecord가 이미 실패 토스트를 띄웠으니 대화 내용은 유지하고 재시도할 수 있게 둔다
     return;
   }
-  showToast(linkedModules.length ? `저장 완료! ${linkedModules.join(', ')}에도 자동 반영됐어요` : '오늘의 기록이 저장됐어요');
+  showToast(linkedModules.length ? `저장 완료! ${linkedModules.join(', ')}에도 자동 반영됐어요` : '오늘의 기록이 저장됐어요 💪');
   initChat();
 };
 
@@ -1695,7 +2658,9 @@ async function renderHistory(){
           <span class="chip flag">${rec.painType}</span>
           ${(rec.quality||[]).map(q=>`<span class="chip">${q}</span>`).join('')}
           ${rec.source==='checkin-auto'? autoBadge:''}
-        </div>`;
+        </div>
+        ${rec.note? `<div class="hint" style="margin-top:6px;">${rec.note}</div>`:''}
+        ${rec.aiInsight? `<div class="hint" style="margin-top:6px;color:var(--lavender-deep);">🔍 ${rec.aiInsight}</div>`:''}`;
     } else if(rec.startDate){ // periodCycles
       div.innerHTML = `
         <div class="record-top"><span class="record-date">🌙 ${fmtCycleRange(rec.startDate, rec.endDate)}</span></div>`;
@@ -1706,7 +2671,8 @@ async function renderHistory(){
           ${(rec.symptoms||[]).map(s=>`<span class="chip flag">${s}</span>`).join('')}
           ${rec.bbt? `<span class="chip">체온 ${rec.bbt}°C</span>`:''}
           ${rec.source==='checkin-auto'? autoBadge:''}
-        </div>`;
+        </div>
+        ${rec.note? `<div class="hint" style="margin-top:6px;">${rec.note}</div>`:''}`;
     } else if(rec.weight!==undefined && rec.type===undefined){ // bodyComposition
       div.innerHTML = `
         <div class="record-top"><span class="record-date">📊 ${dateLabel} · 체성분</span></div>
